@@ -1,7 +1,18 @@
-/* Encoder Library - Basic Example
-   http://www.pjrc.com/teensy/td_libs_Encoder.html
-*/
 
+// ***** Timer *****
+#include <SimpleTimer.h>
+
+// the timer object
+SimpleTimer timer;
+
+// ***** RTC *****
+#include <RTClib.h>
+RTC_DS1307 rtc;
+DateTime now;
+char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+
+
+// ***** Encoder http://www.pjrc.com/teensy/td_libs_Encoder.html
 // If you define ENCODER_DO_NOT_USE_INTERRUPTS *before* including
 // Encoder, the library will never use interrupts.  This is mainly
 // useful to reduce the size of the library when you are using it
@@ -33,7 +44,7 @@ Encoder myEnc(2, 3); //on Uno, the pins with interrupt capability are 2 and 3 (h
 #define limitSwPin 8 // The pin for the limit switch. Set to pullup, so defaults to high. 
 // Connect the switch to GND and look for LOW for trigger. (https://www.arduino.cc/en/Tutorial/DigitalInputPullup)
 // Instantiate a Bounce object :
-Bounce debouncer = Bounce(); 
+Bounce debouncer = Bounce();
 // **************************
 
 // *** SERIAL COMMANDS VARIABLES ***
@@ -50,12 +61,28 @@ bool motionDone = 1; // If the clock's in motion or not
 long oldPosition  = -999;
 // **************************
 
-
 void setup() {
-  // ***** STARTS SERIAL *****
+  // ***** STARTS SERIAL & RTC *****
   Serial.begin(250000);
+
+  if (! rtc.begin()) {
+    Serial.println("Couldn't find RTC");
+  }
+
+  if (! rtc.isrunning()) {
+    Serial.println("RTC is NOT running!");
+  }
+
   inputString.reserve(200);   // reserve 200 bytes for the inputString
   Serial.println("Rachel's Clock");
+
+  timer.setInterval(5000, showTime);
+  // following line sets the RTC to the date & time this sketch was compiled
+  //   rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+  // This line sets the RTC with an explicit date & time,
+  // rtc.adjust(DateTime(2017, 6, 2, 15, 29, 0));
+
+
 
   // ***** SETS PINS *****
   pinMode(enablePin, OUTPUT);
@@ -69,9 +96,14 @@ void setup() {
   debouncer.interval(90);
 
   digitalWrite(enablePin, HIGH); // Turns the motor on
+
 }
 
 void loop() {
+
+  // ***** UPDATE TIME *****
+  timer.run();
+
   // ***** READ ENCODER *****
   long newPosition = myEnc.read();
   if (newPosition != oldPosition) {
@@ -80,9 +112,9 @@ void loop() {
   }
   // **************************
 
- // **** Limit Switch ****
-   debouncer.update();
-   if ( debouncer.fell() ) { // if limit switch is pushed (it will go to LOW, because pullup)
+  // **** Limit Switch ****
+  debouncer.update();
+  if ( debouncer.fell() ) { // if limit switch is pushed (it will go to LOW, because pullup)
     myEnc.write(0); // writes 0 to the encoder location
     Serial.println("Limit Switch Activated"); // DEBUG
   }
@@ -202,4 +234,32 @@ void serialEvent() {
       stringComplete = true;
     }
   }
+}
+
+
+// **** Time Functions ****
+
+
+void showTime() {
+  DateTime now = rtc.now();
+
+  Serial.print(now.year(), DEC);
+  Serial.print('/');
+  Serial.print(now.month(), DEC);
+  Serial.print('/');
+  Serial.print(now.day(), DEC);
+  Serial.print(" (");
+  Serial.print(daysOfTheWeek[now.dayOfTheWeek()]);
+  Serial.print(") ");
+  Serial.print(now.hour(), DEC);
+  Serial.print(':');
+  Serial.print(now.minute(), DEC);
+  Serial.print(':');
+  Serial.print(now.second(), DEC);
+  Serial.println();
+
+  Serial.print(" UNIX TIME = ");
+  Serial.print(now.unixtime());
+  Serial.println();
+
 }
