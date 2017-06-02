@@ -4,13 +4,15 @@
 
 // the timer object
 SimpleTimer timer;
+// timer library - https://github.com/zomerfeld/SimpleTimerArduino
 
 // ***** RTC *****
-#include <RTClib.h>
+#include <RTClib.h> //library from https://github.com/adafruit/RTClib
 RTC_DS1307 rtc;
 DateTime now;
 char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
-
+// Wiring: 5V to 5V, GND to GND, SCL to A5 (on Uno, changes by controller), SDA to A4 (on Uno) 
+// Wiring: https://screencast.com/t/50Cv0fAUM7w5
 
 // ***** Encoder http://www.pjrc.com/teensy/td_libs_Encoder.html
 // If you define ENCODER_DO_NOT_USE_INTERRUPTS *before* including
@@ -28,7 +30,7 @@ char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursd
 //   Best Performance: both pins have interrupt capability
 //   Good Performance: only the first pin has interrupt capability
 //   Low Performance:  neither pin has interrupt capability
-//   Make sure to pull those pins up with a 1K resistor (though the code seems to use the INPUT_PULLUP
+//   Make sure to pull UP those pins up with a 1K resistor (though the code seems to use the INPUT_PULLUP)
 
 Encoder myEnc(2, 3); //on Uno, the pins with interrupt capability are 2 and 3 (https://www.arduino.cc/en/Reference/attachInterrupt)
 
@@ -61,6 +63,8 @@ bool motionDone = 1; // If the clock's in motion or not
 long oldPosition  = -999;
 // **************************
 
+// ************************** SETUP **************************
+
 void setup() {
   // ***** STARTS SERIAL & RTC *****
   Serial.begin(250000);
@@ -78,7 +82,7 @@ void setup() {
 
   timer.setInterval(5000, showTime);
   // following line sets the RTC to the date & time this sketch was compiled
-  //   rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+  // rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
   // This line sets the RTC with an explicit date & time,
   // rtc.adjust(DateTime(2017, 6, 2, 15, 29, 0));
 
@@ -98,6 +102,8 @@ void setup() {
   digitalWrite(enablePin, HIGH); // Turns the motor on
 
 }
+
+// ************************** LOOP **************************
 
 void loop() {
 
