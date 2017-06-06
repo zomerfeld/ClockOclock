@@ -1,9 +1,8 @@
 
 // ***** Timer *****
 #include <SimpleTimer.h>
+SimpleTimer timer; // the timer object
 
-// the timer object
-SimpleTimer timer;
 // timer library - https://github.com/zomerfeld/SimpleTimerArduino
 
 // ***** RTC *****
@@ -11,8 +10,10 @@ SimpleTimer timer;
 RTC_DS1307 rtc;
 DateTime now;
 char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+
 // Wiring: 5V to 5V, GND to GND, SCL to A5 (on Uno, changes by controller), SDA to A4 (on Uno) 
 // Wiring: https://screencast.com/t/50Cv0fAUM7w5
+
 
 // ***** Encoder http://www.pjrc.com/teensy/td_libs_Encoder.html
 // If you define ENCODER_DO_NOT_USE_INTERRUPTS *before* including
@@ -24,7 +25,6 @@ char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursd
 //#define ENCODER_DO_NOT_USE_INTERRUPTS
 #include <Encoder.h>
 #include <Bounce2.h>
-
 
 //   Change these two numbers to the pins connected to your encoder.
 //   Best Performance: both pins have interrupt capability
@@ -40,16 +40,16 @@ Encoder myEnc(2, 3); //on Uno, the pins with interrupt capability are 2 and 3 (h
 #define CWPin 6 // Connect to IN1 - Turning HIGH will change the motor direction to ClockWise
 #define CCWPin 7 // Connect to IN2 - Turning HIGH will change the motor direction to Counter ClockWise
 // (flip the A/B wires if the direction is reversed)
-// **************************
 
 // *** LIMIT SWITCH  ***
 #define limitSwPin 8 // The pin for the limit switch. Set to pullup, so defaults to high. 
 // Connect the switch to GND and look for LOW for trigger. (https://www.arduino.cc/en/Tutorial/DigitalInputPullup)
-// Instantiate a Bounce object :
+
+// Initiate a Bounce object :
 Bounce debouncer = Bounce();
 // **************************
 
-// *** SERIAL COMMANDS VARIABLES ***
+// *** SERIAL VARIABLES ***
 String inputString = "";         // a string to hold incoming data
 boolean stringComplete = false;  // whether the string is complete
 // **************************
@@ -61,7 +61,8 @@ bool motionDone = 1; // If the clock's in motion or not
 
 // *** ENCODER VARIABLES ***
 long oldPosition  = -999;
-// **************************
+
+
 
 // ************************** SETUP **************************
 
@@ -72,7 +73,6 @@ void setup() {
   if (! rtc.begin()) {
     Serial.println("Couldn't find RTC");
   }
-
   if (! rtc.isrunning()) {
     Serial.println("RTC is NOT running!");
   }
@@ -80,33 +80,32 @@ void setup() {
   inputString.reserve(200);   // reserve 200 bytes for the inputString
   Serial.println("Rachel's Clock");
 
-  timer.setInterval(5000, showTime);
+  timer.setInterval(5000, showTime); // This will display the time every 5 seconds on serial. Disable if needed.
+  
   // following line sets the RTC to the date & time this sketch was compiled
   // rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
   // This line sets the RTC with an explicit date & time,
   // rtc.adjust(DateTime(2017, 6, 2, 15, 29, 0));
 
 
-
-  // ***** SETS PINS *****
+  // ***** PIN SETUP *****
   pinMode(enablePin, OUTPUT);
   pinMode(motorSpeedPin, OUTPUT);
   pinMode(CWPin, OUTPUT);
   pinMode(CCWPin, OUTPUT);
   pinMode(limitSwPin, INPUT_PULLUP);
   pinMode(enablePin, OUTPUT);
-  // After setting up the button, setup the Bounce instance :
+  
+  // After setting up the limit SW, setup the Bounce instance :
   debouncer.attach(limitSwPin);
-  debouncer.interval(90);
+  debouncer.interval(90); // 90 seemed to work fast enough. Test and modify if needed
 
   digitalWrite(enablePin, HIGH); // Turns the motor on
-
 }
 
 // ************************** LOOP **************************
 
 void loop() {
-
   // ***** UPDATE TIME *****
   timer.run();
 
@@ -118,13 +117,12 @@ void loop() {
   }
   // **************************
 
-  // **** Limit Switch ****
+  // **** CHECK LIMIT SWITCH ****
   debouncer.update();
   if ( debouncer.fell() ) { // if limit switch is pushed (it will go to LOW, because pullup)
     myEnc.write(0); // writes 0 to the encoder location
     Serial.println("Limit Switch Activated"); // DEBUG
   }
-
 
   // **** Serial handling  ****
   if (stringComplete) {
@@ -169,7 +167,7 @@ void loop() {
     stringComplete = false;
   }
 
-  // stop the motor
+  // ***** Motor destination stopping *****
   if (((newPosition + 40 >= cmdPosition) && (newPosition - 40 <= cmdPosition )) && (motionDone == 0)) {
     Serial.println("Done Moving");
     analogWrite(motorSpeedPin, 0);
@@ -177,95 +175,5 @@ void loop() {
   }
 }
 
-void move(int speed, int direction) { // General Move with Direction (no target location). Speed needs to be 0-255, Direction 1 or 2
-
-  motionDone = 0;
-
-  if (direction == 1) { // clockwise
-    digitalWrite(CWPin, HIGH);
-    digitalWrite(CCWPin, LOW);
-  } else if (direction == 2) { // counter-clockwise
-    digitalWrite(CWPin, LOW);
-    digitalWrite(CCWPin, HIGH);
-  } else {
-    digitalWrite(CWPin, LOW);
-    digitalWrite(CCWPin, LOW);
-    Serial.println("Bad Direction, use 1 for CW and 2 for CCW");
-    return;
-  }
-
-  analogWrite(motorSpeedPin, speed);
-  Serial.println("Moving with speed " + speed);
-}
-
-void moveTo(int speed, int direction, long goToPosition) { // Move to a specific location ******
-
-  // print the command
-  Serial.print("Command Received: Speed: ");
-  Serial.print(speed);
-  Serial.print("\t Direction: ");
-  Serial.print(direction);
-  Serial.print("\t goToPosition: ");
-  Serial.println(goToPosition);
-
-  motionDone = 0; // set the flag for movement (not done is zero means it's moving)
-
-  if (direction == 1) { // clockwise
-    digitalWrite(CWPin, HIGH);
-    digitalWrite(CCWPin, LOW);
-  } else if (direction == 2) { // counter-clockwise
-    digitalWrite(CWPin, LOW);
-    digitalWrite(CCWPin, HIGH);
-  } else {
-    digitalWrite(CWPin, LOW);
-    digitalWrite(CCWPin, LOW);
-    Serial.println("Bad Direction, use 1 for CW and 2 for CCW");
-    return;
-  }
-
-  analogWrite(motorSpeedPin, speed); //move the motor
-
-}
-
-// **** Serial Functions ****
-void serialEvent() {
-  while (Serial.available()) {
-    // get the new byte:
-    char inChar = (char)Serial.read();
-    // add it to the inputString:
-    inputString += inChar;
-    // if the incoming character is a newline, set a flag
-    // so the main loop can do something about it:
-    if (inChar == '\n') {
-      stringComplete = true;
-    }
-  }
-}
 
 
-// **** Time Functions ****
-
-
-void showTime() {
-  DateTime now = rtc.now();
-
-  Serial.print(now.year(), DEC);
-  Serial.print('/');
-  Serial.print(now.month(), DEC);
-  Serial.print('/');
-  Serial.print(now.day(), DEC);
-  Serial.print(" (");
-  Serial.print(daysOfTheWeek[now.dayOfTheWeek()]);
-  Serial.print(") ");
-  Serial.print(now.hour(), DEC);
-  Serial.print(':');
-  Serial.print(now.minute(), DEC);
-  Serial.print(':');
-  Serial.print(now.second(), DEC);
-  Serial.println();
-
-  Serial.print(" UNIX TIME = ");
-  Serial.print(now.unixtime());
-  Serial.println();
-
-}
