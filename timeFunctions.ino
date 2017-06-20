@@ -23,4 +23,12 @@ void showTime() {
   Serial.print(now.unixtime());
   Serial.println();
 
+  if (now.second() >= lastSecond+5) {
+    long destPosition = newPosition + 300;
+    moveTo(255, 1, destPosition);
+    lastSecond = now.second();
+    Serial.println(now.second(), DEC);
+    Serial.println("moving a second");
+  }
+
 }

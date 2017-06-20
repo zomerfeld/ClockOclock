@@ -11,6 +11,9 @@ RTC_DS1307 rtc;
 DateTime now;
 char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 
+int lastMinute = 0;
+int lastSecond = 0;
+
 // Wiring: 5V to 5V, GND to GND, SCL to A5 (on Uno, changes by controller), SDA to A4 (on Uno) 
 // Wiring: https://screencast.com/t/50Cv0fAUM7w5
 
@@ -61,7 +64,7 @@ bool motionDone = 1; // If the clock's in motion or not
 
 // *** ENCODER VARIABLES ***
 long oldPosition  = -999;
-
+long newPosition;
 
 
 // ************************** SETUP **************************
@@ -110,7 +113,7 @@ void loop() {
   timer.run();
 
   // ***** READ ENCODER *****
-  long newPosition = myEnc.read();
+  newPosition = myEnc.read();
   if (newPosition != oldPosition) {
     oldPosition = newPosition;
     Serial.println(newPosition); // DEBUG - Disable eventually
@@ -173,6 +176,9 @@ void loop() {
     analogWrite(motorSpeedPin, 0);
     motionDone = 1;
   }
+
+
+
 }
 
 
