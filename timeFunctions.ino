@@ -23,4 +23,16 @@ void showTime() {
   Serial.print(now.unixtime());
   Serial.println();
 
+  int t_min = now.minute();
+//  Serial.println(t_min);
+
+    // *** IF TIME ***
+    // This is where you put the timed commands. 
+    // For example the part below is moving the thing a bit
+  if (t_min % 3 == 0 && motionDone == 1) {
+    cmdPosition = cmdPosition+90;
+    moveTo(100,1,cmdPosition);
+  }
+
+
 }

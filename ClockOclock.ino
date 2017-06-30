@@ -2,7 +2,7 @@
 // ***** Timer *****
 #include <SimpleTimer.h>
 SimpleTimer timer; // the timer object
-
+int t_min;
 // timer library - https://github.com/zomerfeld/SimpleTimerArduino
 
 // ***** RTC *****
@@ -11,7 +11,7 @@ RTC_DS1307 rtc;
 DateTime now;
 char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 
-// Wiring: 5V to 5V, GND to GND, SCL to A5 (on Uno, changes by controller), SDA to A4 (on Uno) 
+// Wiring: 5V to 5V, GND to GND, SCL to A5 (on Uno, changes by controller), SDA to A4 (on Uno)
 // Wiring: https://screencast.com/t/50Cv0fAUM7w5
 
 
@@ -81,9 +81,9 @@ void setup() {
   Serial.println("Rachel's Clock");
 
   timer.setInterval(5000, showTime); // This will display the time every 5 seconds on serial. Disable if needed.
-  
+
   // following line sets the RTC to the date & time this sketch was compiled
-  // rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+//   rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
   // This line sets the RTC with an explicit date & time,
   // rtc.adjust(DateTime(2017, 6, 2, 15, 29, 0));
 
@@ -95,7 +95,7 @@ void setup() {
   pinMode(CCWPin, OUTPUT);
   pinMode(limitSwPin, INPUT_PULLUP);
   pinMode(enablePin, OUTPUT);
-  
+
   // After setting up the limit SW, setup the Bounce instance :
   debouncer.attach(limitSwPin);
   debouncer.interval(90); // 90 seemed to work fast enough. Test and modify if needed
@@ -145,12 +145,12 @@ void loop() {
       Serial.println(cmdDirection);
 
       //String cmdRest = inputString.substring(commaPosition1 + 2);
-      //      Serial.print("cmdRest: "); // DEBUG
-      //      Serial.println(cmdRest); // DEBUG
+      //Serial.print("cmdRest: "); // DEBUG
+      //Serial.println(cmdRest); // DEBUG
 
       int commaPosition2 = inputString.lastIndexOf(','); // gets the location of the last comma
       int parePosition = inputString.indexOf(')'); //gets the location of the closing parentheses
-      //      Serial.print("parePosition: "); Serial.println(parePosition); // DEBUG
+      //Serial.print("parePosition: "); Serial.println(parePosition); // DEBUG
 
       String cmdPositionSt = inputString.substring(commaPosition2 + 1, parePosition); // cuts the string between the last comma to the parentheses
       cmdPosition = cmdPositionSt.toInt(); //casts the TARGET POSITION into a global variable (long actually, which will accept an int)
@@ -173,6 +173,9 @@ void loop() {
     analogWrite(motorSpeedPin, 0);
     motionDone = 1;
   }
+
+
+  
 }
 
 
