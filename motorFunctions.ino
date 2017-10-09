@@ -4,7 +4,7 @@ void move(int speed, int direction) { // General Move with Direction (no target 
     Serial.println("Motor disabled, can't move");
     return;
   }
-  
+
   motionDone = 0;
 
   if (direction == 1) { // clockwise
@@ -59,14 +59,55 @@ void moveTo(int speed, int direction, long goToPosition) { // Move to a specific
 }
 
 void stopMotor() {
-    Serial.println("Done Moving");
-    analogWrite(motorSpeedPin, 0);
-    motionDone = 1;
+  Serial.println("Done Moving");
+  analogWrite(motorSpeedPin, 0);
+  motionDone = 1;
+}
+
+void checkStop() {
+  if (((newPosition + 40 >= cmdPosition) && (newPosition - 40 <= cmdPosition )) && (motionDone == 0)) {
+    stopMotor();
+  }
 }
 
 
 void findEdges () { //This function finds the edges for the motor movements - Max and Min
   // uses a limit switch (or a hall magnet switch)
-  
+
+  Serial.println("FINDING EDGES");
+
+  while ((analogRead(limitSwPin) <= 600) && (analogRead(limitSwPin) >= 400)) { // numbers might need adjusting based on analog reads of hall sensor
+    move(100, 2);
+    newPosition = myEnc.read();
+    if (newPosition != oldPosition) {
+      oldPosition = newPosition;
+      Serial.print ("enc position: "); // DEBUG - Disable eventually
+      Serial.println(newPosition); // DEBUG - Disable eventually
+    }
+  }
+  stopMotor();
+
+  myEnc.write(0); // writes 0 to the encoder location
+  Serial.println("Limit Switch Activated - MIN"); // DEBUG
+
+  delay(3000); //wait a few seconds
+
+  while ((analogRead(limitSwPin) <= 600) && (analogRead(limitSwPin) >= 400)) { // numbers might need adjusting based on analog reads of hall sensor
+    move(100, 1);
+    newPosition = myEnc.read();
+    if (newPosition != oldPosition) {
+      oldPosition = newPosition;
+      Serial.print ("enc position: "); // DEBUG - Disable eventually
+      Serial.println(newPosition); // DEBUG - Disable eventually
+    }
+  }
+  maxPosition = newPosition;
+  stopMotor();
+  Serial.print("MAX Position: ");
+  Serial.println(maxPosition); // DEBUG - Disable eventually
+  delay(3000);
+
+
 }
+
 

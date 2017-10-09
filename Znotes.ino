@@ -9,3 +9,5 @@ GND
 Signal
 1-10K resistor between VCC and signal. */
 
+
+/* Slowest I can move it seems to be about 70 

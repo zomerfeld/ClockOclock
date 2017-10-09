@@ -18,7 +18,7 @@ int lastHour = -1;
 int lastMinute = -1;
 int lastSecond = -1;
 
-// Wiring: 5V to 5V, GND to GND, SCL to A5 (on Uno, changes by controller), SDA to A4 (on Uno) 
+// Wiring: 5V to 5V, GND to GND, SCL to A5 (on Uno, changes by controller), SDA to A4 (on Uno)
 // Wiring: https://screencast.com/t/50Cv0fAUM7w5
 
 
@@ -64,7 +64,7 @@ boolean stringComplete = false;  // whether the string is complete
 // *** CLOCK VARIABLES ***
 bool motorDisabled = 0; //To disable the motor passed limits
 long maxPosition = -1;
-long cmdPosition = 0; // Where we're aiming the motor to go
+long cmdPosition = 200; // Where we're aiming the motor to go
 bool motionDone = 1; // If the clock's in motion or not
 long distanceMinute = 3000; // CHANGE - How much we need to move for one minute passing
 long distance5Second = 250; // CHANGE - How much we need to move for 5 seconds passing
@@ -79,7 +79,7 @@ long newPosition;
 // ************************** SETUP **************************
 
 void setup() {
-  
+
   // ***** STARTS SERIAL & RTC *****
   Serial.begin(250000);
 
@@ -94,12 +94,12 @@ void setup() {
   Serial.println("Rachel's Clock");
 
 
-// Setting Timers
+  // Setting Timers
   timer.setInterval(5000, showTime); // This will display the time every 5 seconds on serial. Disable if needed.
-//  timer.setInterval(1000, minuteMove); // This will move the motor every minute. Not needed currently
+  //  timer.setInterval(1000, minuteMove); // This will move the motor every minute. Not needed currently
   timer.setInterval(5000, fiveSecMove); //moves the motor every 5 second forward. Should not be enabled by default
 
-  
+
   // following line sets the RTC to the date & time this sketch was compiled
   // rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
   // This line sets the RTC with an explicit date & time,
@@ -113,12 +113,18 @@ void setup() {
   pinMode(CCWPin, OUTPUT);
   pinMode(limitSwPin, INPUT);
   pinMode(enablePin, OUTPUT);
-  
+
   // After setting up the limit SW, setup the Bounce instance (only needed for digital switch :
-//  debouncer.attach(limitSwPin);
-//  debouncer.interval(90); // 90 seemed to work fast enough. Test and modify if needed
+  //  debouncer.attach(limitSwPin);
+  //  debouncer.interval(90); // 90 seemed to work fast enough. Test and modify if needed
 
   digitalWrite(enablePin, HIGH); // Turns the motor on
+
+
+  findEdges();
+  Serial.println("Moving to 0 point");
+  moveTo(200, 2, 0);
+
 }
 
 // ************************** LOOP **************************
@@ -127,7 +133,7 @@ void loop() {
   // ***** UPDATE TIME *****
   timer.run();
 
-  
+
 
   // ***** READ ENCODER *****
   newPosition = myEnc.read();
@@ -139,10 +145,10 @@ void loop() {
   // **************************
 
   // **** CHECK LIMIT SWITCH ****
-//  debouncer.update();
-//  if ( debouncer.fell() ) { // if limit switch is pushed (it will go to LOW, because pullup) // uncomment these 2 lines for Digital Switch
-    if (analogRead(limitSwPin) > 600) {
-    myEnc.write(0); // writes 0 to the encoder location
+  //  debouncer.update();
+  //  if ( debouncer.fell() ) { // if limit switch is pushed (it will go to LOW, because pullup) // uncomment these 2 lines for Digital Switch
+  if (analogRead(limitSwPin) > 600) { //might change the number and / or the direction depend o magent pul
+    //    myEnc.write(0); // writes 0 to the encoder location
     Serial.println("Limit Switch Activated"); // DEBUG
   }
 
@@ -190,11 +196,7 @@ void loop() {
   }
 
   // ***** MOTOR STOPPING *****
-  if (((newPosition + 40 >= cmdPosition) && (newPosition - 40 <= cmdPosition )) && (motionDone == 0)) {
-    stopMotor();
-  }
-
-
+  checkStop();
 
 }
 
