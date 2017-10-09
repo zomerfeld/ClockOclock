@@ -49,10 +49,10 @@ Encoder myEnc(2, 3); //on Uno, the pins with interrupt capability are 2 and 3 (h
 // (flip the A/B wires if the direction is reversed)
 
 // *** LIMIT SWITCH  ***
-#define limitSwPin 8 // The pin for the limit switch. Set to pullup, so defaults to high. 
-// Connect the switch to GND and look for LOW for trigger. (https://www.arduino.cc/en/Tutorial/DigitalInputPullup)
+#define limitSwPin A0 // The pin for the limit switch.  
+// For a regular switch, set as INPUT_PULLUP and connect the switch to GND and look for LOW for trigger. (https://www.arduino.cc/en/Tutorial/DigitalInputPullup)
 
-// Initiate a Bounce object :
+// Initiate a Bounce object: //needed for digital switch
 Bounce debouncer = Bounce();
 // **************************
 
@@ -62,6 +62,8 @@ boolean stringComplete = false;  // whether the string is complete
 // **************************
 
 // *** CLOCK VARIABLES ***
+bool motorDisabled = 0; //To disable the motor passed limits
+long maxPosition = -1;
 long cmdPosition = 0; // Where we're aiming the motor to go
 bool motionDone = 1; // If the clock's in motion or not
 long distanceMinute = 3000; // CHANGE - How much we need to move for one minute passing
@@ -109,12 +111,12 @@ void setup() {
   pinMode(motorSpeedPin, OUTPUT);
   pinMode(CWPin, OUTPUT);
   pinMode(CCWPin, OUTPUT);
-  pinMode(limitSwPin, INPUT_PULLUP);
+  pinMode(limitSwPin, INPUT);
   pinMode(enablePin, OUTPUT);
   
-  // After setting up the limit SW, setup the Bounce instance :
-  debouncer.attach(limitSwPin);
-  debouncer.interval(90); // 90 seemed to work fast enough. Test and modify if needed
+  // After setting up the limit SW, setup the Bounce instance (only needed for digital switch :
+//  debouncer.attach(limitSwPin);
+//  debouncer.interval(90); // 90 seemed to work fast enough. Test and modify if needed
 
   digitalWrite(enablePin, HIGH); // Turns the motor on
 }
@@ -137,8 +139,9 @@ void loop() {
   // **************************
 
   // **** CHECK LIMIT SWITCH ****
-  debouncer.update();
-  if ( debouncer.fell() ) { // if limit switch is pushed (it will go to LOW, because pullup)
+//  debouncer.update();
+//  if ( debouncer.fell() ) { // if limit switch is pushed (it will go to LOW, because pullup) // uncomment these 2 lines for Digital Switch
+    if (analogRead(limitSwPin) > 600) {
     myEnc.write(0); // writes 0 to the encoder location
     Serial.println("Limit Switch Activated"); // DEBUG
   }
@@ -188,9 +191,7 @@ void loop() {
 
   // ***** MOTOR STOPPING *****
   if (((newPosition + 40 >= cmdPosition) && (newPosition - 40 <= cmdPosition )) && (motionDone == 0)) {
-    Serial.println("Done Moving");
-    analogWrite(motorSpeedPin, 0);
-    motionDone = 1;
+    stopMotor();
   }
 
 

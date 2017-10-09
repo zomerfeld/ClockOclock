@@ -57,9 +57,13 @@ void minuteMove () {
 }
 
 void fiveSecMove () {
+    if (motionDone == 1) {
     cmdPosition = newPosition + distance5Second;
     moveTo(255,1,cmdPosition);
     Serial.println("Moving 5 seconds");
+    } else {
+      Serial.println("Already in Motion");
+    }
     rtc.now();
   }
   
