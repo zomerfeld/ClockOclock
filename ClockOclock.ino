@@ -11,8 +11,12 @@ RTC_DS1307 rtc;
 DateTime now;
 char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 
-int lastMinute = 0;
-int lastSecond = 0;
+int nowHour = -1;
+int nowMinute = -1;
+int nowSecond = -1;
+int lastHour = -1;
+int lastMinute = -1;
+int lastSecond = -1;
 
 // Wiring: 5V to 5V, GND to GND, SCL to A5 (on Uno, changes by controller), SDA to A4 (on Uno) 
 // Wiring: https://screencast.com/t/50Cv0fAUM7w5
@@ -60,6 +64,9 @@ boolean stringComplete = false;  // whether the string is complete
 // *** CLOCK VARIABLES ***
 long cmdPosition = 0; // Where we're aiming the motor to go
 bool motionDone = 1; // If the clock's in motion or not
+long distanceMinute = 3000; // CHANGE - How much we need to move for one minute passing
+long distance5Second = 250; // CHANGE - How much we need to move for 5 seconds passing
+
 // **************************
 
 // *** ENCODER VARIABLES ***
@@ -70,6 +77,7 @@ long newPosition;
 // ************************** SETUP **************************
 
 void setup() {
+  
   // ***** STARTS SERIAL & RTC *****
   Serial.begin(250000);
 
@@ -83,7 +91,12 @@ void setup() {
   inputString.reserve(200);   // reserve 200 bytes for the inputString
   Serial.println("Rachel's Clock");
 
+
+// Setting Timers
   timer.setInterval(5000, showTime); // This will display the time every 5 seconds on serial. Disable if needed.
+//  timer.setInterval(1000, minuteMove); // This will move the motor every minute. Not needed currently
+  timer.setInterval(5000, fiveSecMove); //moves the motor every 5 second forward. Should not be enabled by default
+
   
   // following line sets the RTC to the date & time this sketch was compiled
   // rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
@@ -112,10 +125,13 @@ void loop() {
   // ***** UPDATE TIME *****
   timer.run();
 
+  
+
   // ***** READ ENCODER *****
   newPosition = myEnc.read();
   if (newPosition != oldPosition) {
     oldPosition = newPosition;
+    Serial.print ("encoder position: "); // DEBUG - Disable eventually
     Serial.println(newPosition); // DEBUG - Disable eventually
   }
   // **************************
@@ -170,7 +186,7 @@ void loop() {
     stringComplete = false;
   }
 
-  // ***** Motor destination stopping *****
+  // ***** MOTOR STOPPING *****
   if (((newPosition + 40 >= cmdPosition) && (newPosition - 40 <= cmdPosition )) && (motionDone == 0)) {
     Serial.println("Done Moving");
     analogWrite(motorSpeedPin, 0);
