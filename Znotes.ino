@@ -7,7 +7,6 @@ curved side facing facing towards you, left to right:
 VCC
 GND
 Signal
-1-10K resistor between VCC and signal. */
+1-10K resistor between VCC and signal.
 
-
-/* Slowest I can move it seems to be about 70 
+ Slowest I can move it seems to be about 70  */

@@ -51,6 +51,8 @@ Encoder myEnc(2, 3); //on Uno, the pins with interrupt capability are 2 and 3 (h
 // *** LIMIT SWITCH  ***
 #define limitSwPin A0 // The pin for the limit switch.  
 // For a regular switch, set as INPUT_PULLUP and connect the switch to GND and look for LOW for trigger. (https://www.arduino.cc/en/Tutorial/DigitalInputPullup)
+int magnetHigh = 578; // high range for magnet detection
+int magnetLow = 470;
 
 // Initiate a Bounce object: //needed for digital switch
 Bounce debouncer = Bounce();
@@ -123,7 +125,8 @@ void setup() {
 
   findEdges();
   Serial.println("Moving to 0 point");
-  moveTo(200, 2, 0);
+  cmdPosition = 0;
+  moveTo(100, 2, cmdPosition);
 
 }
 

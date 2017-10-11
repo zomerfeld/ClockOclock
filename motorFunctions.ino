@@ -75,8 +75,8 @@ void findEdges () { //This function finds the edges for the motor movements - Ma
   // uses a limit switch (or a hall magnet switch)
 
   Serial.println("FINDING EDGES");
-
-  while ((analogRead(limitSwPin) <= 600) && (analogRead(limitSwPin) >= 400)) { // numbers might need adjusting based on analog reads of hall sensor
+  delay(3000);
+  while ((analogRead(limitSwPin) <= magnetHigh) && (analogRead(limitSwPin) >= magnetLow)) { // numbers might need adjusting based on analog reads of hall sensor
     move(100, 2);
     newPosition = myEnc.read();
     if (newPosition != oldPosition) {
@@ -89,10 +89,14 @@ void findEdges () { //This function finds the edges for the motor movements - Ma
 
   myEnc.write(0); // writes 0 to the encoder location
   Serial.println("Limit Switch Activated - MIN"); // DEBUG
+  Serial.print("New Limit: "); // DEBUG
+  Serial.println(myEnc.read());
 
-  delay(3000); //wait a few seconds
+  move(100,1); 
+  delay(2000); //wait a few seconds
+  
 
-  while ((analogRead(limitSwPin) <= 600) && (analogRead(limitSwPin) >= 400)) { // numbers might need adjusting based on analog reads of hall sensor
+  while ((analogRead(limitSwPin) <= magnetHigh) && (analogRead(limitSwPin) >= magnetLow)) { // numbers might need adjusting based on analog reads of hall sensor
     move(100, 1);
     newPosition = myEnc.read();
     if (newPosition != oldPosition) {
