@@ -51,8 +51,8 @@ Encoder myEnc(2, 3); //on Uno, the pins with interrupt capability are 2 and 3 (h
 // *** LIMIT SWITCH  ***
 #define limitSwPin A0 // The pin for the limit switch.  
 // For a regular switch, set as INPUT_PULLUP and connect the switch to GND and look for LOW for trigger. (https://www.arduino.cc/en/Tutorial/DigitalInputPullup)
-int magnetHigh = 578; // high range for magnet detection
-int magnetLow = 470;
+int magnetHigh = 520; // high range for magnet detection (460+578?)
+int magnetLow = 440;
 
 // Initiate a Bounce object: //needed for digital switch
 Bounce debouncer = Bounce();
@@ -70,6 +70,7 @@ long cmdPosition = 200; // Where we're aiming the motor to go
 bool motionDone = 1; // If the clock's in motion or not
 long distanceMinute = 3000; // CHANGE - How much we need to move for one minute passing
 long distance5Second = 250; // CHANGE - How much we need to move for 5 seconds passing
+int direction; // globally stores the direction of the moveTo Commands. 
 
 // **************************
 
@@ -84,6 +85,9 @@ void setup() {
 
   // ***** STARTS SERIAL & RTC *****
   Serial.begin(250000);
+  Serial.println("Rachel's Clock");
+
+  Serial.println("***STARTING RTC***");
 
   if (! rtc.begin()) {
     Serial.println("Couldn't find RTC");
@@ -93,7 +97,6 @@ void setup() {
   }
 
   inputString.reserve(200);   // reserve 200 bytes for the inputString
-  Serial.println("Rachel's Clock");
 
 
   // Setting Timers
@@ -124,9 +127,6 @@ void setup() {
 
 
   findEdges();
-  Serial.println("Moving to 0 point");
-  cmdPosition = 0;
-  moveTo(100, 2, cmdPosition);
 
 }
 
