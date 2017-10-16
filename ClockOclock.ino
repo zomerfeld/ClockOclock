@@ -48,6 +48,10 @@ Encoder myEnc(2, 3); //on Uno, the pins with interrupt capability are 2 and 3 (h
 #define CCWPin 7 // Connect to IN2 - Turning HIGH will change the motor direction to Counter ClockWise
 // (flip the A/B wires if the direction is reversed)
 
+#define fwdButton 8 //Button to move motor forward
+#define backButton 9 //Button to move motor backward
+
+
 // *** LIMIT SWITCH  ***
 #define limitSwPin A0 // The pin for the limit switch.  
 // For a regular switch, set as INPUT_PULLUP and connect the switch to GND and look for LOW for trigger. (https://www.arduino.cc/en/Tutorial/DigitalInputPullup)
@@ -55,7 +59,9 @@ int magnetHigh = 520; // high range for magnet detection (460+578?)
 int magnetLow = 440;
 
 // Initiate a Bounce object: //needed for digital switch
-Bounce debouncer = Bounce();
+Bounce debouncer1 = Bounce();
+Bounce debouncer2 = Bounce();
+
 // **************************
 
 // *** SERIAL VARIABLES ***
@@ -70,7 +76,7 @@ long cmdPosition = 200; // Where we're aiming the motor to go
 bool motionDone = 1; // If the clock's in motion or not
 long distanceMinute = 3000; // CHANGE - How much we need to move for one minute passing
 long distance5Second = 250; // CHANGE - How much we need to move for 5 seconds passing
-int direction; // globally stores the direction of the moveTo Commands. 
+int direction; // globally stores the direction of the moveTo Commands.
 
 // **************************
 
@@ -100,7 +106,7 @@ void setup() {
 
 
   // Setting Timers
-  timer.setInterval(5000, showTime); // This will display the time every 5 seconds on serial. Disable if needed.
+  timer.setInterval(4999, showTime); // This will display the time every 5 seconds on serial. Disable if needed.
   //  timer.setInterval(1000, minuteMove); // This will move the motor every minute. Not needed currently
   timer.setInterval(5000, fiveSecMove); //moves the motor every 5 second forward. Should not be enabled by default
 
@@ -118,6 +124,8 @@ void setup() {
   pinMode(CCWPin, OUTPUT);
   pinMode(limitSwPin, INPUT);
   pinMode(enablePin, OUTPUT);
+  pinMode(fwdButton, INPUT_PULLUP);
+  pinMode(backButton, INPUT_PULLUP);
 
   // After setting up the limit SW, setup the Bounce instance (only needed for digital switch :
   //  debouncer.attach(limitSwPin);
@@ -125,6 +133,11 @@ void setup() {
 
   digitalWrite(enablePin, HIGH); // Turns the motor on
 
+  debouncer1.attach(fwdButton);
+  debouncer2.attach(backButton);
+
+  debouncer1.interval(90); // 90 seemed to work fast enough. Test and modify if needed
+  debouncer2.interval(90); // 90 seemed to work fast enough. Test and modify if needed
 
   findEdges();
 
@@ -147,9 +160,9 @@ void loop() {
   }
   // **************************
 
-  // **** CHECK LIMIT SWITCH ****
-  //  debouncer.update();
-  //  if ( debouncer.fell() ) { // if limit switch is pushed (it will go to LOW, because pullup) // uncomment these 2 lines for Digital Switch
+  // **** CHECK SWITCHes ****
+  debouncer1.update();
+  debouncer2.update();
   if (analogRead(limitSwPin) > 600) { //might change the number and / or the direction depend o magent pul
     //    myEnc.write(0); // writes 0 to the encoder location
     Serial.println("Limit Switch Activated"); // DEBUG
@@ -200,6 +213,29 @@ void loop() {
 
   // ***** MOTOR STOPPING *****
   checkStop();
+
+  // ***** MANUAL CONTROL BUTTONS *****
+  if (debouncer1.fell()) {
+    digitalWrite(CWPin, HIGH);
+    digitalWrite(CCWPin, LOW);
+    analogWrite(motorSpeedPin, 100);
+    Serial.println("moving manually");
+  }
+
+  if (debouncer2.fell()) {
+    digitalWrite(CWPin, LOW);
+    digitalWrite(CCWPin, HIGH);
+    analogWrite(motorSpeedPin, 100);
+    Serial.println("moving manually");
+  }
+
+  if (debouncer1.rose()) {
+    stopMotor();
+  }
+
+  if (debouncer2.rose()) {
+    stopMotor();
+  }
 
 }
 
