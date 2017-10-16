@@ -215,7 +215,7 @@ void loop() {
   checkStop();
 
   // ***** MANUAL CONTROL BUTTONS *****
-  if (debouncer1.fell()) {
+  if (debouncer1.fell()) { //if the button went to low (set to pullup)
     digitalWrite(CWPin, HIGH);
     digitalWrite(CCWPin, LOW);
     analogWrite(motorSpeedPin, 100);
@@ -229,7 +229,7 @@ void loop() {
     Serial.println("moving manually");
   }
 
-  if (debouncer1.rose()) {
+  if (debouncer1.rose()) { //when the buttons are not pressed anymore 
     stopMotor();
   }
 
