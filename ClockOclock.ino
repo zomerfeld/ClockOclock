@@ -50,6 +50,7 @@ Encoder myEnc(2, 3); //on Uno, the pins with interrupt capability are 2 and 3 (h
 
 #define fwdButton 8 //Button to move motor forward
 #define backButton 9 //Button to move motor backward
+#define debugLED 13 // Debug LED
 
 
 // *** LIMIT SWITCH  ***
@@ -108,7 +109,7 @@ void setup() {
   // Setting Timers
   timer.setInterval(4999, showTime); // This will display the time every 5 seconds on serial. Disable if needed.
   //  timer.setInterval(1000, minuteMove); // This will move the motor every minute. Not needed currently
-  timer.setInterval(5000, fiveSecMove); //moves the motor every 5 second forward. Should not be enabled by default
+//  timer.setInterval(5000, fiveSecMove); //moves the motor every 5 second forward. Should not be enabled by default
 
 
   // following line sets the RTC to the date & time this sketch was compiled
@@ -126,6 +127,8 @@ void setup() {
   pinMode(enablePin, OUTPUT);
   pinMode(fwdButton, INPUT_PULLUP);
   pinMode(backButton, INPUT_PULLUP);
+  pinMode(debugLED, OUTPUT);
+  
 
   // After setting up the limit SW, setup the Bounce instance (only needed for digital switch :
   //  debouncer.attach(limitSwPin);
@@ -163,9 +166,14 @@ void loop() {
   // **** CHECK SWITCHes ****
   debouncer1.update();
   debouncer2.update();
-  if (analogRead(limitSwPin) > 600) { //might change the number and / or the direction depend o magent pul
+//  if (analogRead(limitSwPin) > 519) { // OLD WAY - might change the number and / or the direction depend o magent pul
+  if ((analogRead(limitSwPin) >= magnetHigh) || (analogRead(limitSwPin) <= magnetLow)) { // numbers might need adjusting based on analog reads of hall sensor
+
     //    myEnc.write(0); // writes 0 to the encoder location
     Serial.println("Limit Switch Activated"); // DEBUG
+    digitalWrite(debugLED, HIGH); //turn on debug led
+  } else {
+    digitalWrite(debugLED, LOW); //turn off debug LED
   }
 
   // **** Serial handling  ****

@@ -93,7 +93,7 @@ void findEdges () { //This function finds the edges for the motor movements - Ma
   Serial.println("FINDING EDGES");
   delay(3000);
   while ((analogRead(limitSwPin) <= magnetHigh) && (analogRead(limitSwPin) >= magnetLow)) { // numbers might need adjusting based on analog reads of hall sensor
-    move(100, 2);
+    move(150, 2);
     newPosition = myEnc.read();
     if (newPosition != oldPosition) {
       oldPosition = newPosition;
@@ -113,7 +113,7 @@ void findEdges () { //This function finds the edges for the motor movements - Ma
 
 
   while ((analogRead(limitSwPin) <= magnetHigh) && (analogRead(limitSwPin) >= magnetLow)) { // numbers might need adjusting based on analog reads of hall sensor
-    move(100, 1);
+    move(150, 1);
     newPosition = myEnc.read();
     if (newPosition != oldPosition) {
       oldPosition = newPosition;

@@ -26,6 +26,10 @@ void showTime() {
   nowHour = now.hour();
   nowMinute = now.minute();
   nowSecond = now.second();
+
+//debug - prints the hall sensor read on limit switch
+  Serial.print("hall sensor read = ");
+  Serial.println(analogRead(limitSwPin));
   
 //
 //  if (now.second() >= lastSecond+5) { //this condition doesn't work
