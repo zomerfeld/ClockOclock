@@ -226,7 +226,7 @@ void loop() {
   if (debouncer1.fell()) { //if the button went to low (set to pullup)
     digitalWrite(CWPin, HIGH);
     digitalWrite(CCWPin, LOW);
-    analogWrite(motorSpeedPin, 100);
+    analogWrite(motorSpeedPin, 125);
     Serial.println("moving manually");
   }
 
