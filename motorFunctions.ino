@@ -70,7 +70,7 @@ void stopMotor() {
 }
 
 void checkStop() {
-  if (((newPosition + 40 >= cmdPosition) && (newPosition - 40 <= cmdPosition )) && (motionDone == 0)) {
+  if (((newPosition + 10 >= cmdPosition) && (newPosition - 40 <= cmdPosition )) && (motionDone == 0)) {
     Serial.println("Stop Condition"); //DEBUG
     stopMotor();
   }

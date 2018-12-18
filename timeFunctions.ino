@@ -30,6 +30,10 @@ void showTime() {
 //debug - prints the hall sensor read on limit switch
   Serial.print("hall sensor read = ");
   Serial.println(analogRead(limitSwPin));
+
+// debug - print an enc read
+    Serial.print ("encoder position: "); // DEBUG - Disable eventually
+    Serial.println(newPosition); // DEBUG - Disable eventually
   
 //
 //  if (now.second() >= lastSecond+5) { //this condition doesn't work

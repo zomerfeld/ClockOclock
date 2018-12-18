@@ -57,7 +57,7 @@ Encoder myEnc(2, 3); //on Uno, the pins with interrupt capability are 2 and 3 (h
 #define limitSwPin A0 // The pin for the limit switch.  
 // For a regular switch, set as INPUT_PULLUP and connect the switch to GND and look for LOW for trigger. (https://www.arduino.cc/en/Tutorial/DigitalInputPullup)
 int magnetHigh = 520; // high range for magnet detection (460+578?)
-int magnetLow = 440;
+int magnetLow = 480;
 
 // Initiate a Bounce object: //needed for digital switch
 Bounce debouncer1 = Bounce();
@@ -142,7 +142,7 @@ void setup() {
   debouncer1.interval(90); // 90 seemed to work fast enough. Test and modify if needed
   debouncer2.interval(90); // 90 seemed to work fast enough. Test and modify if needed
 
-  findEdges();
+  findEdges(); //Disable for testing. 
 
 }
 
@@ -170,7 +170,8 @@ void loop() {
   if ((analogRead(limitSwPin) >= magnetHigh) || (analogRead(limitSwPin) <= magnetLow)) { // numbers might need adjusting based on analog reads of hall sensor
 
     //    myEnc.write(0); // writes 0 to the encoder location
-    Serial.println("Limit Switch Activated"); // DEBUG
+//    Serial.print("Limit Switch Activated: "); // DEBUG
+//    Serial.println(analogRead(limitSwPin));
     digitalWrite(debugLED, HIGH); //turn on debug led
   } else {
     digitalWrite(debugLED, LOW); //turn off debug LED
@@ -183,6 +184,8 @@ void loop() {
     // command to manual move: moveTo(X,Y,Z)
     // X = Speed (0-255), Y direction (1or2), Z location )
     // moveTo(120,1,3000)
+    // 1 = CW
+    // 2 = CCW
 
     if (inputString.startsWith("moveTo")) { // if the string begins with moveTo - Case Sensitive!
       int commaPosition1 = inputString.indexOf(','); //gets the location of the first comma
