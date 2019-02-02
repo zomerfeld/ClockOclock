@@ -148,7 +148,8 @@ void setup() {
   // *** Setting PID ***
   myPID.SetMode(AUTOMATIC);   //set PID in Auto mode
   myPID.SetSampleTime(1);  // refresh rate of PID controller
-  myPID.SetOutputLimits(-200, 200); // this is the MAX PWM value to move motor, here change in value reflect change in speed of motor.
+//  myPID.SetOutputLimits(-200, 200); // this is the MAX PWM value to move motor, here change in value reflect change in speed of motor.
+  motorSpeed(200);
 
   digitalWrite(enablePin, HIGH); // Turns the motor on
 

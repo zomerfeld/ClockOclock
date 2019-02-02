@@ -17,14 +17,14 @@ void pwmOut(int out) {
 
 
 void forward () {
-  digitalWrite(CWPin, HIGH);
-  digitalWrite(CCWPin, LOW);
+  digitalWrite(CWPin, LOW);
+  digitalWrite(CCWPin, HIGH);
   //  Serial.println("forward()");
 }
 
 void reverse () {
-  digitalWrite(CWPin, LOW);
-  digitalWrite(CCWPin, HIGH);
+  digitalWrite(CWPin, HIGH);
+  digitalWrite(CCWPin, LOW);
 }
 
 void finish () {
@@ -38,8 +38,7 @@ void stopMotor() {
   motionDone = 1;
 }
 
-
-void checkMax() {
+void checkMax() { //stops the motor if it's trying to go over the max position 
   if (encoderValue + 40 >= maxPosition) {
     stopMotor();
     motionDone = 1;
@@ -47,6 +46,11 @@ void checkMax() {
     setpoint = 0;
 
   }
+}
+
+void motorSpeed(int reqSpeed) {
+  reqSpeed = abs(reqSpeed);
+  myPID.SetOutputLimits(-reqSpeed, reqSpeed);
 }
 
 void findEdges () { 
