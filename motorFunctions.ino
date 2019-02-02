@@ -1,136 +1,101 @@
-void move(int speed, int directionTo) { // General Move with Direction (no target location). Speed needs to be 0-255, Direction 1 or 2
-
-  direction = directionTo; // Stores the direction in a global parameter
-
-  if (motorDisabled == 1) {
-    Serial.println("Motor disabled, can't move");
-    return;
+void pwmOut(int out) {
+  if (out > 0) {                         // if REV > encoderValue motor move in forward direction.
+    analogWrite(motorSpeedPin, out);         // Enabling motor enable pin to reach the desire angle
+    forward();                           // calling motor to move forward
+    //Serial.print("Moving FWD: ");
+    //Serial.println(out);
+    checkMax(); //stops the motor from moving past the max point. 
   }
+  else {
+    analogWrite(motorSpeedPin, abs(out));          // if REV < encoderValue motor move in forward direction.
+    //    Serial.print("Moving BACK: ");
+    //    Serial.println(out);
+    reverse();                            // calling motor to move reverse
 
-  motionDone = 0;
-
-  if (directionTo == 1) { // clockwise
-    digitalWrite(CWPin, HIGH);
-    digitalWrite(CCWPin, LOW);
-  } else if (directionTo == 2) { // counter-clockwise
-    digitalWrite(CWPin, LOW);
-    digitalWrite(CCWPin, HIGH);
-  } else {
-    digitalWrite(CWPin, LOW);
-    digitalWrite(CCWPin, LOW);
-    Serial.println("Bad Direction, use 1 for CW and 2 for CCW");
-    return;
   }
-
-  analogWrite(motorSpeedPin, speed);
-  Serial.println("Moving with speed " + speed);
 }
 
-void moveTo(int speed, int directionTo, long goToPosition) { // Move to a specific location ******
 
-  direction = directionTo;
+void forward () {
+  digitalWrite(CWPin, HIGH);
+  digitalWrite(CCWPin, LOW);
+  //  Serial.println("forward()");
+}
 
-  if (motorDisabled == 1) {
-    Serial.println("Motor disabled, can't move");
-    return;
-  }
+void reverse () {
+  digitalWrite(CWPin, LOW);
+  digitalWrite(CCWPin, HIGH);
+}
 
-  // print the command
-  Serial.print("Command Received: Speed: ");
-  Serial.print(speed);
-  Serial.print("\t Direction: ");
-  Serial.print(directionTo);
-  Serial.print("\t goToPosition: ");
-  Serial.println(goToPosition);
-
-  motionDone = 0; // set the flag for movement (not done is zero means it's moving)
-
-  if (directionTo == 1) { // clockwise
-    digitalWrite(CWPin, HIGH);
-    digitalWrite(CCWPin, LOW);
-  } else if (directionTo == 2) { // counter-clockwise
-    digitalWrite(CWPin, LOW);
-    digitalWrite(CCWPin, HIGH);
-  } else {
-    digitalWrite(CWPin, LOW);
-    digitalWrite(CCWPin, LOW);
-    Serial.println("Bad Direction, use 1 for CW and 2 for CCW");
-    return;
-  }
-
-  analogWrite(motorSpeedPin, speed); //move the motor
-  Serial.println("Moving"); // DEBUG
-
+void finish () {
+  digitalWrite(CWPin, LOW);
+  digitalWrite(CCWPin, LOW);
 }
 
 void stopMotor() {
-  Serial.println("Done Moving");
+  //Serial.println("Done Moving");
   analogWrite(motorSpeedPin, 0);
   motionDone = 1;
 }
 
-void checkStop() {
-  if (((newPosition + 10 >= cmdPosition) && (newPosition - 40 <= cmdPosition )) && (motionDone == 0)) {
-    Serial.println("Stop Condition"); //DEBUG
-    stopMotor();
-  }
-  checkMax();
-}
 
 void checkMax() {
-  if ((newPosition + 40 >= maxPosition) && (motionDone == 0) && (direction == 1)) {
-    motionDone = 0;
+  if (encoderValue + 40 >= maxPosition) {
+    stopMotor();
+    motionDone = 1;
     Serial.println("Reached Max");
-    cmdPosition = 0;
-    moveTo(100, 2, cmdPosition); //move back to 0
+    setpoint = 0;
 
   }
 }
 
-void findEdges () { //This function finds the edges for the motor movements - Max and Min
+void findEdges () { 
+  //This function finds the edges for the motor movements - Max and Min
   // uses a limit switch (or a hall magnet switch)
 
   Serial.println("FINDING EDGES");
   delay(3000);
   while ((analogRead(limitSwPin) <= magnetHigh) && (analogRead(limitSwPin) >= magnetLow)) { // numbers might need adjusting based on analog reads of hall sensor
-    move(150, 2);
-    newPosition = myEnc.read();
+    Serial.println("Running");
+    pwmOut(-150);
+    Serial.print("Sensor: ");
+    Serial.println(analogRead(limitSwPin));
+    newPosition = encoderValue;
     if (newPosition != oldPosition) {
       oldPosition = newPosition;
-      Serial.print ("enc position: "); // DEBUG - Disable eventually
+      Serial.print ("encoder position: "); // DEBUG - Disable eventually
       Serial.println(newPosition); // DEBUG - Disable eventually
     }
   }
+
   stopMotor();
 
-  myEnc.write(0); // writes 0 to the encoder location
+  encoderValue = 0; // writes 0 to the encoder location
   Serial.println("Limit Switch Activated - MIN"); // DEBUG
   Serial.print("New Limit: "); // DEBUG
-  Serial.println(myEnc.read());
+  Serial.println(encoderValue);
 
-  move(100, 1);
-  delay(2000); //wait a few seconds
+  pwmOut(100); // move FWD a bit
+  delay(2000); //
 
 
   while ((analogRead(limitSwPin) <= magnetHigh) && (analogRead(limitSwPin) >= magnetLow)) { // numbers might need adjusting based on analog reads of hall sensor
-    move(150, 1);
-    newPosition = myEnc.read();
+    pwmOut(150); // move FWD
+    newPosition = encoderValue;
     if (newPosition != oldPosition) {
       oldPosition = newPosition;
-      Serial.print ("enc position: "); // DEBUG - Disable eventually
+      Serial.print ("encoder position: "); // DEBUG - Disable eventually
       Serial.println(newPosition); // DEBUG - Disable eventually
     }
   }
+
   maxPosition = newPosition;
   stopMotor();
   Serial.print("MAX Position: ");
   Serial.println(maxPosition); // DEBUG - Disable eventually
+  PPR = maxPosition;
   delay(3000);
-  cmdPosition = 0;
   Serial.println("Moving to 0 point");
-  moveTo(100, 2, cmdPosition); // Move back to 0
-
+  setpoint = 0;
 
 }
-
-

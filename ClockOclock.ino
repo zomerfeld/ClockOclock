@@ -2,15 +2,16 @@
 // ***** Timer *****
 #include <SimpleTimer.h>
 SimpleTimer timer; // the timer object
-
 // timer library - https://github.com/zomerfeld/SimpleTimerArduino
+
+// ***** PID *****
+#include <PID_v1.h>
 
 // ***** RTC *****
 #include <RTClib.h> //library from https://github.com/adafruit/RTClib
 RTC_DS1307 rtc;
 DateTime now;
 char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
-
 int nowHour = -1;
 int nowMinute = -1;
 int nowSecond = -1;
@@ -18,28 +19,19 @@ int lastHour = -1;
 int lastMinute = -1;
 int lastSecond = -1;
 
-// Wiring: 5V to 5V, GND to GND, SCL to A5 (on Uno, changes by controller), SDA to A4 (on Uno)
-// Wiring: https://screencast.com/t/50Cv0fAUM7w5
+// RTC Wiring: 5V to 5V, GND to GND, SCL to A5 (on Uno, changes by controller), SDA to A4 (on Uno)
+// TC Wiring: https://screencast.com/t/50Cv0fAUM7w5
 
-
-// ***** Encoder http://www.pjrc.com/teensy/td_libs_Encoder.html
-// If you define ENCODER_DO_NOT_USE_INTERRUPTS *before* including
-// Encoder, the library will never use interrupts.  This is mainly
-// useful to reduce the size of the library when you are using it
-// with pins that do not support interrupts.  Without interrupts,
-// your program must call the read() function rapidly, or risk
-// missing changes in position.
-//#define ENCODER_DO_NOT_USE_INTERRUPTS
-#include <Encoder.h>
 #include <Bounce2.h>
+// Initiate a Bounce object: //needed for digital switch
+Bounce debouncer1 = Bounce();
+Bounce debouncer2 = Bounce();
 
-//   Change these two numbers to the pins connected to your encoder.
-//   Best Performance: both pins have interrupt capability
-//   Good Performance: only the first pin has interrupt capability
-//   Low Performance:  neither pin has interrupt capability
-//   Make sure to pull UP those pins up with a 1K resistor (though the code seems to use the INPUT_PULLUP)
 
-Encoder myEnc(2, 3); //on Uno, the pins with interrupt capability are 2 and 3 (https://www.arduino.cc/en/Reference/attachInterrupt)
+// *** PID VALUES ***
+double kp = 10 , ki = 14 , kd =  0.001;             // modify for optimal performance
+double input = 0, output = 0, setpoint = 0;
+PID myPID(&input, &output, &setpoint, kp, ki, kd, DIRECT);
 
 // *** MOTOR CONTROL PINS ***
 #define enablePin 4 // Connect to EN - Send High or Low to enabled and disable the motor
@@ -59,57 +51,68 @@ Encoder myEnc(2, 3); //on Uno, the pins with interrupt capability are 2 and 3 (h
 int magnetHigh = 520; // high range for magnet detection (460+578?)
 int magnetLow = 480;
 
-// Initiate a Bounce object: //needed for digital switch
-Bounce debouncer1 = Bounce();
-Bounce debouncer2 = Bounce();
-
+// home-test parametrs - REMOVEEEEEEE
+//int magnetHigh = 700; // high range for magnet detection (460+578?)
+//int magnetLow = 100;
 // **************************
 
 // *** SERIAL VARIABLES ***
-String inputString = "";         // a string to hold incoming data
+String readString; //This while store the user input data
+int User_Input = 0; // This while convert input string into integer
 boolean stringComplete = false;  // whether the string is complete
 // **************************
 
 // *** CLOCK VARIABLES ***
 bool motorDisabled = 0; //To disable the motor passed limits
-long maxPosition = -1;
-long cmdPosition = 200; // Where we're aiming the motor to go
+long maxPosition = 25L * 40000L;
+//long cmdPosition = 200; // Where we're aiming the motor to go
 bool motionDone = 1; // If the clock's in motion or not
-long distanceMinute = 3000; // CHANGE - How much we need to move for one minute passing
-long distance5Second = 250; // CHANGE - How much we need to move for 5 seconds passing
-int direction; // globally stores the direction of the moveTo Commands.
+long distanceMinute = 18; // CHANGE - How much we need to move for one minute passing - in angles
+long distance5Second = 5; // CHANGE - How much we need to move for 5 seconds passing - in angles
 
 // **************************
 
 // *** ENCODER VARIABLES ***
+int encoderPin1 = 2; //Encoder Output 'A' must connected with intreput pin of arduino.
+int encoderPin2 = 3; //Encoder Otput 'B' must connected with intreput pin of arduino.
+//         Best Performance: both pins have interrupt capability
+//         Good Performance: only the first pin has interrupt capability
+//         Low Performance:  neither pin has interrupt capability
+//         Make sure to pull UP those pins up with a 1K resistor (though the code seems to use the INPUT_PULLUP)
+volatile int lastEncoded = 0; // Here updated value of encoder store.
+volatile long encoderValue = 0; // Raw encoder value
+int PPR = 7124;  // Encoder Pulse per revolution.
+int angle = 180; // Maximum degree of motion.
+int REV = 0;          // Set point REQUIRED ENCODER VALUE
+int lastMSB = 0;
+int lastLSB = 0;
+
+int maxGap = 30; // how much tolerance for overshoot or undershoot to say "good enough" and STOP motor.
+
+//these are  storage containers for messaging
 long oldPosition  = -999;
 long newPosition;
 
-
 // ************************** SETUP **************************
-
 void setup() {
 
   // ***** STARTS SERIAL & RTC *****
   Serial.begin(250000);
   Serial.println("Rachel's Clock");
-
   Serial.println("***STARTING RTC***");
-
   if (! rtc.begin()) {
     Serial.println("Couldn't find RTC");
   }
   if (! rtc.isrunning()) {
     Serial.println("RTC is NOT running!");
   }
-
-  inputString.reserve(200);   // reserve 200 bytes for the inputString
+  readString.reserve(200);   // reserve 200 bytes for the readString
 
 
   // Setting Timers
   timer.setInterval(4999, showTime); // This will display the time every 5 seconds on serial. Disable if needed.
   //  timer.setInterval(1000, minuteMove); // This will move the motor every minute. Not needed currently
-//  timer.setInterval(5000, fiveSecMove); //moves the motor every 5 second forward. Should not be enabled by default
+  //  timer.setInterval(5000, fiveSecMove); //moves the motor every 5 second forward. Should not be enabled by default
 
 
   // following line sets the RTC to the date & time this sketch was compiled
@@ -123,26 +126,42 @@ void setup() {
   pinMode(motorSpeedPin, OUTPUT);
   pinMode(CWPin, OUTPUT);
   pinMode(CCWPin, OUTPUT);
+  pinMode(encoderPin1, INPUT_PULLUP);
+  pinMode(encoderPin2, INPUT_PULLUP);
   pinMode(limitSwPin, INPUT);
   pinMode(enablePin, OUTPUT);
   pinMode(fwdButton, INPUT_PULLUP);
   pinMode(backButton, INPUT_PULLUP);
   pinMode(debugLED, OUTPUT);
-  
 
-  // After setting up the limit SW, setup the Bounce instance (only needed for digital switch :
-  //  debouncer.attach(limitSwPin);
-  //  debouncer.interval(90); // 90 seemed to work fast enough. Test and modify if needed
+  digitalWrite(encoderPin1, HIGH); //turn pullup resistor on
+  digitalWrite(encoderPin2, HIGH); //turn pullup resistor on
+
+  // *** call updateEncoder() when any high/low changed seen
+  //     on interrupt 0 (pin 2), or interrupt 1 (pin 3)
+  attachInterrupt(0, updateEncoder, CHANGE);
+  attachInterrupt(1, updateEncoder, CHANGE);
+
+
+  TCCR1B = TCCR1B & 0b11111000 | 1;  // set 31KHz PWM to prevent motor noise
+
+  // *** Setting PID ***
+  myPID.SetMode(AUTOMATIC);   //set PID in Auto mode
+  myPID.SetSampleTime(1);  // refresh rate of PID controller
+  myPID.SetOutputLimits(-200, 200); // this is the MAX PWM value to move motor, here change in value reflect change in speed of motor.
 
   digitalWrite(enablePin, HIGH); // Turns the motor on
 
   debouncer1.attach(fwdButton);
   debouncer2.attach(backButton);
-
   debouncer1.interval(90); // 90 seemed to work fast enough. Test and modify if needed
   debouncer2.interval(90); // 90 seemed to work fast enough. Test and modify if needed
 
-  findEdges(); //Disable for testing. 
+  // If using Digital Limit Switch - , setup the Bounce instance (not needed for magnetic limit sw) :
+  //  debouncer.attach(limitSwPin);
+  //  debouncer.interval(90); // 90 seemed to work fast enough. Test and modify if needed
+
+  findEdges();
 
 }
 
@@ -152,26 +171,20 @@ void loop() {
   // ***** UPDATE TIME *****
   timer.run();
 
-
-
   // ***** READ ENCODER *****
-  newPosition = myEnc.read();
+  newPosition = encoderValue;
   if (newPosition != oldPosition) {
     oldPosition = newPosition;
-    Serial.print ("encoder position: "); // DEBUG - Disable eventually
+    Serial.print ("encoder position: "); // Prints value changes. DEBUG - Disable eventually
     Serial.println(newPosition); // DEBUG - Disable eventually
   }
-  // **************************
 
-  // **** CHECK SWITCHes ****
-  debouncer1.update();
+
+  debouncer1.update(); //checks the switches
   debouncer2.update();
-//  if (analogRead(limitSwPin) > 519) { // OLD WAY - might change the number and / or the direction depend o magent pul
-  if ((analogRead(limitSwPin) >= magnetHigh) || (analogRead(limitSwPin) <= magnetLow)) { // numbers might need adjusting based on analog reads of hall sensor
 
-    //    myEnc.write(0); // writes 0 to the encoder location
-//    Serial.print("Limit Switch Activated: "); // DEBUG
-//    Serial.println(analogRead(limitSwPin));
+  // *** Debug LED for Limit Switches
+  if ((analogRead(limitSwPin) >= magnetHigh) || (analogRead(limitSwPin) <= magnetLow)) { // numbers might need adjusting based on analog reads of hall sensor
     digitalWrite(debugLED, HIGH); //turn on debug led
   } else {
     digitalWrite(debugLED, LOW); //turn off debug LED
@@ -179,51 +192,40 @@ void loop() {
 
   // **** Serial handling  ****
   if (stringComplete) {
-    Serial.println(inputString);
+    Serial.println(User_Input);
+    Serial.println(readString.toInt());  //printing the input data in integer form
+    User_Input = readString.toInt();   // here input data is store in integer form
+    REV = map (User_Input, 0, angle, 0, PPR); // mapping degree into pulse
+    setpoint = REV;                    //Destination in revolutions - PID will work to achive this value consider as SET value
 
-    // command to manual move: moveTo(X,Y,Z)
-    // X = Speed (0-255), Y direction (1or2), Z location )
-    // moveTo(120,1,3000)
-    // 1 = CW
-    // 2 = CCW
-
-    if (inputString.startsWith("moveTo")) { // if the string begins with moveTo - Case Sensitive!
-      int commaPosition1 = inputString.indexOf(','); //gets the location of the first comma
-      String cmdSpeedSt = inputString.substring(7, commaPosition1); // cuts the string between the 7th char and the first comma
-      int cmdSpeed = cmdSpeedSt.toInt(); // casts the SPEED it into an int
-      Serial.print("cmdSpeed: ");
-      Serial.println(cmdSpeed);
-
-      String cmdDirectionSt = inputString.substring(commaPosition1 + 1, commaPosition1 + 2); // gets the direction
-      int cmdDirection = cmdDirectionSt.toInt(); // casts the DIRECTION into an int
-      Serial.print("cmdDirection: ");
-      Serial.println(cmdDirection);
-
-      //String cmdRest = inputString.substring(commaPosition1 + 2);
-      //      Serial.print("cmdRest: "); // DEBUG
-      //      Serial.println(cmdRest); // DEBUG
-
-      int commaPosition2 = inputString.lastIndexOf(','); // gets the location of the last comma
-      int parePosition = inputString.indexOf(')'); //gets the location of the closing parentheses
-      //      Serial.print("parePosition: "); Serial.println(parePosition); // DEBUG
-
-      String cmdPositionSt = inputString.substring(commaPosition2 + 1, parePosition); // cuts the string between the last comma to the parentheses
-      cmdPosition = cmdPositionSt.toInt(); //casts the TARGET POSITION into a global variable (long actually, which will accept an int)
-      Serial.print("cmdPosition: ");
-      Serial.println(cmdPosition);
-
-      // engage the motor via the moveTo Function
-      moveTo(cmdSpeed, cmdDirection, cmdPosition);
-
-    }
-
-    // clear the string:
-    inputString = "";
-    stringComplete = false;
   }
 
-  // ***** MOTOR STOPPING *****
-  checkStop();
+  input = encoderValue ;           // data from encoder consider as a Process value
+
+// *** CHECK FOR STOP ***
+  double gap = abs(setpoint - input); //distance away from setpoint
+  if (gap < maxGap) { //we're close to setpoint, stop
+    stopMotor();
+  }
+  else // **** MOVE MOVE MOVE ****
+  {
+    //we're far from setpoint
+    myPID.Compute();                 // calculate new output
+    pwmOut(output);
+    Serial.print("this is REV: ");
+    Serial.println(REV);
+    Serial.print("encoderValue: ");
+    Serial.print(encoderValue);
+    Serial.print("   (g:");
+    Serial.print(gap);
+    Serial.println(")");
+
+  }
+
+  // clear the string: (should I put this into stopmotor?)
+  readString = ""; // Cleaning User input, ready for new Input
+  stringComplete = false;
+
 
   // ***** MANUAL CONTROL BUTTONS *****
   if (debouncer1.fell()) { //if the button went to low (set to pullup)
@@ -240,7 +242,7 @@ void loop() {
     Serial.println("moving manually");
   }
 
-  if (debouncer1.rose()) { //when the buttons are not pressed anymore 
+  if (debouncer1.rose()) { //when the buttons are not pressed anymore
     stopMotor();
   }
 
@@ -251,4 +253,16 @@ void loop() {
 }
 
 
+void updateEncoder() {
+  int MSB = digitalRead(encoderPin1); //MSB = most significant bit
+  int LSB = digitalRead(encoderPin2); //LSB = least significant bit
 
+  int encoded = (MSB << 1) | LSB; //converting the 2 pin value to single number
+  int sum  = (lastEncoded << 2) | encoded; //adding it to the previous encoded value
+
+  if (sum == 0b1101 || sum == 0b0100 || sum == 0b0010 || sum == 0b1011) encoderValue ++;
+  if (sum == 0b1110 || sum == 0b0111 || sum == 0b0001 || sum == 0b1000) encoderValue --;
+
+  lastEncoded = encoded; //store this value for next time
+
+}
