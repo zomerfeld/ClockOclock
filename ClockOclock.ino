@@ -54,13 +54,11 @@ int magnetLow = 480;
 // home-test parametrs - REMOVEEEEEEE
 //int magnetHigh = 700; // high range for magnet detection (460+578?)
 //int magnetLow = 100;
-// **************************
 
 // *** SERIAL VARIABLES ***
 String readString; //This while store the user input data
 int User_Input = 0; // This while convert input string into integer
 boolean stringComplete = false;  // whether the string is complete
-// **************************
 
 // *** CLOCK VARIABLES ***
 bool motorDisabled = 0; //To disable the motor passed limits
@@ -69,8 +67,6 @@ long maxPosition = 25L * 40000L;
 bool motionDone = 1; // If the clock's in motion or not
 long distanceMinute = 18; // CHANGE - How much we need to move for one minute passing - in angles
 long distance5Second = 5; // CHANGE - How much we need to move for 5 seconds passing - in angles
-
-// **************************
 
 // *** ENCODER VARIABLES ***
 int encoderPin1 = 2; //Encoder Output 'A' must connected with intreput pin of arduino.
@@ -87,7 +83,7 @@ int REV = 0;          // Set point REQUIRED ENCODER VALUE
 int lastMSB = 0;
 int lastLSB = 0;
 
-int maxGap = 30; // how much tolerance for overshoot or undershoot to say "good enough" and STOP motor.
+int maxGap = 20; // how much tolerance for overshoot or undershoot to say "good enough" and STOP motor. 20 seems a good value.
 
 //these are  storage containers for messaging
 long oldPosition  = -999;
@@ -149,7 +145,7 @@ void setup() {
   myPID.SetMode(AUTOMATIC);   //set PID in Auto mode
   myPID.SetSampleTime(1);  // refresh rate of PID controller
 //  myPID.SetOutputLimits(-200, 200); // this is the MAX PWM value to move motor, here change in value reflect change in speed of motor.
-  motorSpeed(200);
+  motorSpeed(200); // Sets Motor Speed // 70 is too slow 
 
   digitalWrite(enablePin, HIGH); // Turns the motor on
 
@@ -230,24 +226,24 @@ void loop() {
 
   // ***** MANUAL CONTROL BUTTONS *****
   if (debouncer1.fell()) { //if the button went to low (set to pullup)
-    digitalWrite(CWPin, HIGH);
-    digitalWrite(CCWPin, LOW);
-    analogWrite(motorSpeedPin, 125);
+    analogWrite(motorSpeedPin, 200);
+    forward();
     Serial.println("moving manually");
   }
 
   if (debouncer2.fell()) {
-    digitalWrite(CWPin, LOW);
-    digitalWrite(CCWPin, HIGH);
-    analogWrite(motorSpeedPin, 100);
+    analogWrite(motorSpeedPin, 200);
+    reverse();
     Serial.println("moving manually");
   }
 
   if (debouncer1.rose()) { //when the buttons are not pressed anymore
+    Serial.println("Button 1 rose");
     stopMotor();
   }
 
   if (debouncer2.rose()) {
+    Serial.println("Button 2 rose");
     stopMotor();
   }
 

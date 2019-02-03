@@ -36,13 +36,15 @@ void stopMotor() {
   //Serial.println("Done Moving");
   analogWrite(motorSpeedPin, 0);
   motionDone = 1;
+//  Serial.println("**STOPPED**");
+
 }
 
 void checkMax() { //stops the motor if it's trying to go over the max position 
-  if (encoderValue + 40 >= maxPosition) {
+  if ((encoderValue + 40 >= maxPosition) & (newPosition >= 60))  {
+    Serial.println("Reached Max");
     stopMotor();
     motionDone = 1;
-    Serial.println("Reached Max");
     setpoint = 0;
 
   }
