@@ -4,7 +4,7 @@ void pwmOut(int out) {
     forward();                           // calling motor to move forward
     //Serial.print("Moving FWD: ");
     //Serial.println(out);
-    checkMax(); //stops the motor from moving past the max point. 
+    checkMax(); //stops the motor from moving past the max point.
   }
   else {
     analogWrite(motorSpeedPin, abs(out));          // if REV < encoderValue motor move in forward direction.
@@ -36,11 +36,11 @@ void stopMotor() {
   //Serial.println("Done Moving");
   analogWrite(motorSpeedPin, 0);
   motionDone = 1;
-//  Serial.println("**STOPPED**");
+  //  Serial.println("**STOPPED**");
 
 }
 
-void checkMax() { //stops the motor if it's trying to go over the max position 
+void checkMax() { //stops the motor if it's trying to go over the max position
   if ((encoderValue + 40 >= maxPosition) & (newPosition >= 60))  {
     Serial.println("Reached Max");
     stopMotor();
@@ -55,7 +55,7 @@ void motorSpeed(int reqSpeed) {
   myPID.SetOutputLimits(-reqSpeed, reqSpeed);
 }
 
-void findEdges () { 
+void findEdges () {
   //This function finds the edges for the motor movements - Max and Min
   // uses a limit switch (or a hall magnet switch)
 
@@ -74,6 +74,7 @@ void findEdges () {
     }
   }
 
+  Serial.println("*** FOUND MIN EDGE ***"); // DEBUG - Disable eventually
   stopMotor();
 
   encoderValue = 0; // writes 0 to the encoder location
@@ -96,6 +97,7 @@ void findEdges () {
   }
 
   maxPosition = newPosition;
+  Serial.println("*** FOUND MAX EDGE ***"); // DEBUG - Disable eventually
   stopMotor();
   Serial.print("MAX Position: ");
   Serial.println(maxPosition); // DEBUG - Disable eventually

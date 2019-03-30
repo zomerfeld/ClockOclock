@@ -144,8 +144,8 @@ void setup() {
   // *** Setting PID ***
   myPID.SetMode(AUTOMATIC);   //set PID in Auto mode
   myPID.SetSampleTime(1);  // refresh rate of PID controller
-//  myPID.SetOutputLimits(-200, 200); // this is the MAX PWM value to move motor, here change in value reflect change in speed of motor.
-  motorSpeed(200); // Sets Motor Speed // 70 is too slow 
+  //  myPID.SetOutputLimits(-200, 200); // this is the MAX PWM value to move motor, here change in value reflect change in speed of motor.
+  motorSpeed(200); // Sets Motor Speed // 70 is too slow
 
   digitalWrite(enablePin, HIGH); // Turns the motor on
 
@@ -199,53 +199,70 @@ void loop() {
 
   input = encoderValue ;           // data from encoder consider as a Process value
 
-// *** CHECK FOR STOP ***
-  double gap = abs(setpoint - input); //distance away from setpoint
-  if (gap < maxGap) { //we're close to setpoint, stop
+  // ***** MANUAL CONTROL BUTTONS *****
+  if (debouncer1.fell()) { //if the button went to low (set to pullup)
+    digitalWrite(debugLED, HIGH); //turn on debug led
+    Serial.println("moving manually");
+    forward();
+    analogWrite(motorSpeedPin, 200);
+  }
+
+  if (debouncer2.fell()) {
+    digitalWrite(debugLED, HIGH); //turn on debug led
+    Serial.println("moving manually");
+    reverse();
+    analogWrite(motorSpeedPin, 200);
+  }
+
+  if (debouncer1.rose()) { //when the buttons are not pressed anymore
+    Serial.println("Button 1 rose");
+    digitalWrite(debugLED, LOW); //turn off debug led
+    setpoint = encoderValue;
     stopMotor();
   }
-  else // **** MOVE MOVE MOVE ****
-  {
-    //we're far from setpoint
-    myPID.Compute();                 // calculate new output
-    pwmOut(output);
-    Serial.print("this is REV: ");
-    Serial.println(REV);
-    Serial.print("encoderValue: ");
-    Serial.print(encoderValue);
-    Serial.print("   (g:");
-    Serial.print(gap);
-    Serial.println(")");
 
+  if (debouncer2.rose()) {
+    Serial.println("Button 2 rose");
+    digitalWrite(debugLED, LOW); //turn off debug led
+    setpoint = encoderValue;
+    stopMotor();
   }
+
+
+  // *** CHECK FOR STOP ***
+  double gap = abs(setpoint - input); //distance away from setpoint
+  if ((digitalRead(fwdButton) == 1) && (digitalRead(backButton) == 1)) {
+    if (gap < maxGap) { //we're close to setpoint, stop
+      //      Serial.println("*** CLOSE TO GAP ***"); // DEBUG - Disable eventually
+      //      Serial.print("Buttons State ");
+      //      Serial.print(digitalRead(fwdButton));
+      //      Serial.print("       ");
+      //      Serial.println(digitalRead(backButton));
+      stopMotor();
+    }
+    else // **** MOVE MOVE MOVE ****
+    {
+      //we're far from setpoint
+      myPID.Compute();                 // calculate new output
+      pwmOut(output);
+      Serial.print("this is REV: ");
+      Serial.println(REV);
+      Serial.print("encoderValue: ");
+      Serial.print(encoderValue);
+      Serial.print("   (g:");
+      Serial.print(gap);
+      Serial.println(")");
+
+    }
+  }
+
 
   // clear the string: (should I put this into stopmotor?)
   readString = ""; // Cleaning User input, ready for new Input
   stringComplete = false;
 
 
-  // ***** MANUAL CONTROL BUTTONS *****
-  if (debouncer1.fell()) { //if the button went to low (set to pullup)
-    analogWrite(motorSpeedPin, 200);
-    forward();
-    Serial.println("moving manually");
-  }
 
-  if (debouncer2.fell()) {
-    analogWrite(motorSpeedPin, 200);
-    reverse();
-    Serial.println("moving manually");
-  }
-
-  if (debouncer1.rose()) { //when the buttons are not pressed anymore
-    Serial.println("Button 1 rose");
-    stopMotor();
-  }
-
-  if (debouncer2.rose()) {
-    Serial.println("Button 2 rose");
-    stopMotor();
-  }
 
 }
 
