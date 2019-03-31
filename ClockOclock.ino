@@ -48,7 +48,7 @@ PID myPID(&input, &output, &setpoint, kp, ki, kd, DIRECT);
 // *** LIMIT SWITCH  ***
 #define limitSwPin A0 // The pin for the limit switch.  
 // For a regular switch, set as INPUT_PULLUP and connect the switch to GND and look for LOW for trigger. (https://www.arduino.cc/en/Tutorial/DigitalInputPullup)
-int magnetHigh = 520; // high range for magnet detection (460+578?)
+int magnetHigh = 536; // high range for magnet detection (460+578?)
 int magnetLow = 480;
 
 // home-test parametrs - REMOVEEEEEEE
@@ -69,8 +69,8 @@ long distanceMinute = 18; // CHANGE - How much we need to move for one minute pa
 long distance5Second = 5; // CHANGE - How much we need to move for 5 seconds passing - in angles
 
 // *** ENCODER VARIABLES ***
-int encoderPin1 = 2; //Encoder Output 'A' must connected with intreput pin of arduino.
-int encoderPin2 = 3; //Encoder Otput 'B' must connected with intreput pin of arduino.
+int encoderPin1 = 3; //Encoder Output 'A' must connected with intreput pin of arduino.
+int encoderPin2 = 2; //Encoder Otput 'B' must connected with intreput pin of arduino.
 //         Best Performance: both pins have interrupt capability
 //         Good Performance: only the first pin has interrupt capability
 //         Low Performance:  neither pin has interrupt capability
@@ -200,6 +200,7 @@ void loop() {
   input = encoderValue ;           // data from encoder consider as a Process value
 
   // ***** MANUAL CONTROL BUTTONS *****
+
   if (debouncer1.fell()) { //if the button went to low (set to pullup)
     digitalWrite(debugLED, HIGH); //turn on debug led
     Serial.println("moving manually");
@@ -227,6 +228,8 @@ void loop() {
     setpoint = encoderValue;
     stopMotor();
   }
+
+  // ********************
 
 
   // *** CHECK FOR STOP ***
@@ -257,7 +260,7 @@ void loop() {
   }
 
 
-  // clear the string: (should I put this into stopmotor?)
+  // clear the string: 
   readString = ""; // Cleaning User input, ready for new Input
   stringComplete = false;
 

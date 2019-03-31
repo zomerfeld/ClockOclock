@@ -83,7 +83,7 @@ void findEdges () {
   Serial.println(encoderValue);
 
   pwmOut(100); // move FWD a bit
-  delay(2000); //
+  delay(3000); //
 
 
   while ((analogRead(limitSwPin) <= magnetHigh) && (analogRead(limitSwPin) >= magnetLow)) { // numbers might need adjusting based on analog reads of hall sensor
