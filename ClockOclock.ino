@@ -183,6 +183,8 @@ void loop() {
   // *** Debug LED for Limit Switches
   if ((analogRead(limitSwPin) >= magnetHigh) || (analogRead(limitSwPin) <= magnetLow)) { // numbers might need adjusting based on analog reads of hall sensor
     digitalWrite(debugLED, HIGH); //turn on debug led
+    Serial.print("LIMIT - HALL SENSOR READING: ");
+    Serial.println(analogRead(limitSwPin));
   } else {
     digitalWrite(debugLED, LOW); //turn off debug LED
   }
@@ -232,7 +234,7 @@ void loop() {
   // ********************
 
 
-  // *** CHECK FOR STOP ***
+  // *** CHECK FOR DESTINATION STOP ***
   double gap = abs(setpoint - input); //distance away from setpoint
   if ((digitalRead(fwdButton) == 1) && (digitalRead(backButton) == 1)) {
     if (gap < maxGap) { //we're close to setpoint, stop

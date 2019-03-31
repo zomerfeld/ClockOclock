@@ -4,7 +4,7 @@ void pwmOut(int out) {
     forward();                           // calling motor to move forward
     //Serial.print("Moving FWD: ");
     //Serial.println(out);
-    checkMax(); //stops the motor from moving past the max point.
+//    checkMax(); //stops the motor from moving past the max point.
   }
   else {
     analogWrite(motorSpeedPin, abs(out));          // if REV < encoderValue motor move in forward direction.
@@ -45,7 +45,7 @@ void checkMax() { //stops the motor if it's trying to go over the max position
     Serial.println("Reached Max");
     stopMotor();
     motionDone = 1;
-    setpoint = 0;
+    setpoint = 90;
 
   }
 }
@@ -96,7 +96,7 @@ void findEdges () {
     }
   }
 
-  maxPosition = newPosition;
+  maxPosition = newPosition+200;
   Serial.println("*** FOUND MAX EDGE ***"); // DEBUG - Disable eventually
   stopMotor();
   Serial.print("MAX Position: ");
