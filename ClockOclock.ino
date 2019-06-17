@@ -78,7 +78,7 @@ int encoderPin2 = 2; //Encoder Otput 'B' must connected with intreput pin of ard
 volatile int lastEncoded = 0; // Here updated value of encoder store.
 volatile long encoderValue = 0; // Raw encoder value
 int PPR = 7124;  // Encoder Pulse per revolution.
-int angle = 180; // Maximum degree of motion.
+int angle = 170; // Maximum degree of motion.
 int REV = 0;          // Set point REQUIRED ENCODER VALUE
 int lastMSB = 0;
 int lastLSB = 0;
@@ -112,7 +112,7 @@ void setup() {
 
 
   // following line sets the RTC to the date & time this sketch was compiled
-  // rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+  //   rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
   // This line sets the RTC with an explicit date & time,
   // rtc.adjust(DateTime(2017, 6, 2, 15, 29, 0));
 
@@ -191,12 +191,36 @@ void loop() {
 
   // **** Serial handling  ****
   if (stringComplete) {
-    Serial.println(User_Input);
-    Serial.println(readString.toInt());  //printing the input data in integer form
-    User_Input = readString.toInt();   // here input data is store in integer form
-    REV = map (User_Input, 0, angle, 0, PPR); // mapping degree into pulse
-    setpoint = REV;                    //Destination in revolutions - PID will work to achive this value consider as SET value
+    readString.trim();
+    Serial.println(readString);
+    if (readString == "b") {
+      Serial.println("moving back a bit");
+      reverse();
+      analogWrite(motorSpeedPin, 150);
+      delay(250);
+      setpoint = encoderValue;
+      stopMotor();
+    } else if (readString == "f") {
+      Serial.println("moving fwd a bit");
+      forward();
+      analogWrite(motorSpeedPin, 150);
+      delay(250);
+      setpoint = encoderValue;
+      stopMotor();
+    } else if (readString == "reset") {
+      Serial.println("Reset - FindingEdges");
+      findEdges();
+      readString = ""; // Cleaning User input, ready for new Input
+    } else {
+      Serial.println(readString.toInt());  //printing the input data in integer form
+      User_Input = readString.toInt();   // here input data is store in integer form
+      if (User_Input < 5) {
+        User_Input = 5;
+      }
+      REV = map (User_Input, 10, angle, 0, PPR); // mapping degree into pulse
+      setpoint = REV;                    //Destination in revolutions - PID will work to achive this value consider as SET value
 
+    }
   }
 
   input = encoderValue ;           // data from encoder consider as a Process value
@@ -234,6 +258,22 @@ void loop() {
   // ********************
 
 
+  // ******************** Do things on times ********************
+
+  // if (now.hour() == 0 && now.minute() == 0) {
+  //      digitalWrite (RELAY, HIGH);
+  //}
+
+  if (now.hour() == 18 && now.minute() == 5) {
+    Serial.println("****** IT'S TIME ********");
+    REV = map (92, 10, angle, 0, PPR); // mapping degree into pulse
+    setpoint = REV;                    //Destination in revolutions - PID will work to achive this value consider as SET value
+  }
+
+  // **************************************************************
+
+
+
   // *** CHECK FOR DESTINATION STOP ***
   double gap = abs(setpoint - input); //distance away from setpoint
   if ((digitalRead(fwdButton) == 1) && (digitalRead(backButton) == 1)) {
@@ -250,8 +290,8 @@ void loop() {
       //we're far from setpoint
       myPID.Compute();                 // calculate new output
       pwmOut(output);
-      Serial.print("this is REV: ");
-      Serial.println(REV);
+      //      Serial.print("this is REV: ");
+      //      Serial.println(REV);
       Serial.print("encoderValue: ");
       Serial.print(encoderValue);
       Serial.print("   (g:");
@@ -262,7 +302,7 @@ void loop() {
   }
 
 
-  // clear the string: 
+  // clear the string:
   readString = ""; // Cleaning User input, ready for new Input
   stringComplete = false;
 
