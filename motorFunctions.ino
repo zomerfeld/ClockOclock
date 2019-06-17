@@ -106,7 +106,7 @@ void findEdges () {
   Serial.println(maxPosition); // DEBUG - Disable eventually
   PPR = maxPosition;
   delay(3000);
-  Serial.println("Moving to 0 point");
+  Serial.println("Moving to 0 deg");
   setpoint = 0;
   return;
 

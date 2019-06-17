@@ -2,30 +2,7 @@
 // **** Time Functions ****
 
 void showTime() {
-  DateTime now = rtc.now();
-
-  Serial.print(now.year(), DEC);
-  Serial.print('/');
-  Serial.print(now.month(), DEC);
-  Serial.print('/');
-  Serial.print(now.day(), DEC);
-  Serial.print(" (");
-  Serial.print(daysOfTheWeek[now.dayOfTheWeek()]);
-  Serial.print(") ");
-  Serial.print(now.hour(), DEC);
-  Serial.print(':');
-  Serial.print(now.minute(), DEC);
-  Serial.print(':');
-  Serial.print(now.second(), DEC);
-  Serial.println();
-
-  Serial.print(" UNIX TIME = ");
-  Serial.print(now.unixtime());
-  Serial.println();
-
-  nowHour = now.hour();
-  nowMinute = now.minute();
-  nowSecond = now.second();
+  digitalClockDisplay();
 
   //debug - prints the hall sensor read on limit switch
   Serial.print("hall sensor read = ");
@@ -35,9 +12,9 @@ void showTime() {
   Serial.print ("encoder position: "); // DEBUG - Disable eventually
   Serial.println(newPosition); // DEBUG - Disable eventually
 
-  // debug - print an MaxPosition
-  Serial.print ("max position: "); // DEBUG - Disable eventually
-  Serial.println(maxPosition); // DEBUG - Disable eventually
+//  // debug - print an MaxPosition
+//  Serial.print ("max position: "); // DEBUG - Disable eventually
+//  Serial.println(maxPosition); // DEBUG - Disable eventually
 
 
   //
@@ -51,35 +28,88 @@ void showTime() {
 
 }
 
-void minuteMove () {
-  //  Serial.print("minute: ");
-  //  Serial.println (nowMinute, DEC);
-  if (nowMinute == 0) {
-    int pushMove = map (distanceMinute, 0, angle, 0, PPR); // mapping degree into pulse
-    setpoint = encoderValue + pushMove;
-    Serial.println("moving a minute");
-    lastMinute = 0.5;
-  }
-  if (nowMinute > lastMinute) {
-    setpoint = encoderValue + distanceMinute;
-    Serial.println("moving a minute");
-    lastMinute = nowMinute;
-    rtc.now();
-  }
+// ************ TIMED MOVEMENTS *****************
+
+void moveRest () {
+  Serial.println("****** IT'S TIME ********");
+  REV = map (minAngle, minAngle, maxAngle, 0, PPR); // mapping degree into pulse
+  setpoint = REV;                    //Destination in revolutions - PID will work to achive this value consider as SET value
 }
 
-void fiveSecMove () {
-  //    if (motionDone == 1) {
-  int pushMove = map (distance5Second, 0, angle, 0, PPR); // mapping degree into pulse
-  
-  setpoint = encoderValue + pushMove;
-  Serial.print("Moving 5 seconds: ");
-  Serial.print(distance5Second); 
-  Serial.print(" deg, ");
-  Serial.print(pushMove);
-  Serial.println(" revolutions");
-  //    } else {
-  //      Serial.println("Already in Motion");
-  //    }
-  rtc.now();
+void move90fm () {
+  Serial.println("****** IT'S TIME ********");
+  REV = map (92, minAngle, maxAngle, 0, PPR); // mapping degree into pulse
+  setpoint = REV;                    //Destination in revolutions - PID will work to achive this value consider as SET value
+}
+
+void move100fm () {
+  Serial.println("****** IT'S TIME ********");
+  REV = map (102, minAngle, maxAngle, 0, PPR); // mapping degree into pulse
+  setpoint = REV;                    //Destination in revolutions - PID will work to achive this value consider as SET value
+}
+
+void move550am () {
+  Serial.println("****** IT'S TIME ********");
+  REV = map (12, minAngle, maxAngle, 0, PPR); // mapping degree into pulse
+  setpoint = REV;                    //Destination in revolutions - PID will work to achive this value consider as SET value
+}
+
+void move600am () {
+  Serial.println("****** IT'S TIME ********");
+  REV = map (20, minAngle, maxAngle, 0, PPR); // mapping degree into pulse
+  setpoint = REV;                    //Destination in revolutions - PID will work to achive this value consider as SET value
+}
+
+
+void move700am () {
+  Serial.println("****** IT'S TIME ********");
+  REV = map (48, minAngle, maxAngle, 0, PPR); // mapping degree into pulse
+  setpoint = REV;                    //Destination in revolutions - PID will work to achive this value consider as SET value
+}
+
+void move800am () {
+  Serial.println("****** IT'S TIME ********");
+  REV = map (65, minAngle, maxAngle, 0, PPR); // mapping degree into pulse
+  setpoint = REV;                    //Destination in revolutions - PID will work to achive this value consider as SET value
+}
+
+
+void move900am () {
+  Serial.println("****** IT'S TIME ********");
+  REV = map (81, minAngle, maxAngle, 0, PPR); // mapping degree into pulse
+  setpoint = REV;                    //Destination in revolutions - PID will work to achive this value consider as SET value
+}
+
+
+void move1000am () {
+  Serial.println("****** IT'S TIME ********");
+  REV = map (100, minAngle, maxAngle, 0, PPR); // mapping degree into pulse
+  setpoint = REV;                    //Destination in revolutions - PID will work to achive this value consider as SET value
+}
+
+
+void move1100am () {
+  Serial.println("****** IT'S TIME ********");
+  REV = map (110, minAngle, maxAngle, 0, PPR); // mapping degree into pulse
+  setpoint = REV;                    //Destination in revolutions - PID will work to achive this value consider as SET value
+}
+
+
+
+
+// **********************************************
+
+void digitalClockDisplay() {
+  // digital clock display of the time
+  Serial.print(hour());
+  printDigits(minute());
+  printDigits(second());
+  Serial.println();
+}
+
+void printDigits(int digits) {
+  Serial.print(":");
+  if (digits < 10)
+    Serial.print('0');
+  Serial.print(digits);
 }

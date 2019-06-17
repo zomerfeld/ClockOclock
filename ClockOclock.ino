@@ -8,16 +8,10 @@ SimpleTimer timer; // the timer object
 #include <PID_v1.h>
 
 // ***** RTC *****
-#include <RTClib.h> //library from https://github.com/adafruit/RTClib
-RTC_DS1307 rtc;
-DateTime now;
-char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
-int nowHour = -1;
-int nowMinute = -1;
-int nowSecond = -1;
-int lastHour = -1;
-int lastMinute = -1;
-int lastSecond = -1;
+#include <TimeLib.h>
+#include <TimeAlarms.h>
+#include <DS1307RTC.h>  // a basic DS1307 library that returns time as a time_t
+
 
 // RTC Wiring: 5V to 5V, GND to GND, SCL to A5 (on Uno, changes by controller), SDA to A4 (on Uno)
 // TC Wiring: https://screencast.com/t/50Cv0fAUM7w5
@@ -51,9 +45,6 @@ PID myPID(&input, &output, &setpoint, kp, ki, kd, DIRECT);
 int magnetHigh = 536; // high range for magnet detection (460+578?)
 int magnetLow = 480;
 
-// home-test parametrs - REMOVEEEEEEE
-//int magnetHigh = 700; // high range for magnet detection (460+578?)
-//int magnetLow = 100;
 
 // *** SERIAL VARIABLES ***
 String readString; //This while store the user input data
@@ -78,7 +69,8 @@ int encoderPin2 = 2; //Encoder Otput 'B' must connected with intreput pin of ard
 volatile int lastEncoded = 0; // Here updated value of encoder store.
 volatile long encoderValue = 0; // Raw encoder value
 int PPR = 7124;  // Encoder Pulse per revolution.
-int angle = 170; // Maximum degree of motion.
+int minAngle = 10; // Maximum degree of motion.
+int maxAngle = 170; // Maximum degree of motion.
 int REV = 0;          // Set point REQUIRED ENCODER VALUE
 int lastMSB = 0;
 int lastLSB = 0;
@@ -96,17 +88,15 @@ void setup() {
   Serial.begin(250000);
   Serial.println("Rachel's Clock");
   Serial.println("***STARTING RTC***");
-  if (! rtc.begin()) {
-    Serial.println("Couldn't find RTC");
-  }
-  if (! rtc.isrunning()) {
-    Serial.println("RTC is NOT running!");
-  }
+  setSyncProvider(RTC.get);   // the function to get the time from the RTC
+  setSyncInterval(8000);         // set the number of seconds between re-sync
+
+
   readString.reserve(200);   // reserve 200 bytes for the readString
 
 
   // Setting Timers
-  timer.setInterval(4999, showTime); // This will display the time every 5 seconds on serial. Disable if needed.
+  //  timer.setInterval(4999, showTime); // This will display the time every 5 seconds on serial. Disable if needed.
   //  timer.setInterval(1000, minuteMove); // This will move the motor every minute. Not needed currently
   //  timer.setInterval(5000, fiveSecMove); //moves the motor every 5 second forward. Should not be enabled by default
 
@@ -160,13 +150,38 @@ void setup() {
 
   findEdges();
 
+  REV = map (90, minAngle, maxAngle, 0, PPR); // mapping degree into pulse
+  setpoint = REV;                    //Destination in revolutions - PID will work to achive this value consider as SET value      REV = map (User_Input, 10, angle, 0, PPR); // mapping degree into pulse
+
+  // ******************** Do things on times ********************
+
+  Alarm.alarmRepeat(20, 59, 57, move90fm);
+  Alarm.alarmRepeat(22, 0, 0, move100fm);
+  Alarm.alarmRepeat(23, 0, 0, moveRest);
+
+  
+  Alarm.alarmRepeat(5, 49, 57, move550am);
+  Alarm.alarmRepeat(6, 0, 0, move600am);
+  Alarm.alarmRepeat(7, 0, 0, move700am);
+  Alarm.alarmRepeat(8, 0, 0, move800am);
+  Alarm.alarmRepeat(9, 0, 0, move900am);
+  Alarm.alarmRepeat(10, 0, 0, move1000am);
+  Alarm.alarmRepeat(11, 0, 0, move1100am);
+  Alarm.alarmRepeat(12, 0, 0, moveRest);
+  
+
+
+  // ******************** ****************** ********************
+
 }
 
 // ************************** LOOP **************************
 
 void loop() {
   // ***** UPDATE TIME *****
-  timer.run();
+  //  timer.run();
+  Alarm.delay(1);
+
 
   // ***** READ ENCODER *****
   newPosition = encoderValue;
@@ -217,7 +232,7 @@ void loop() {
       if (User_Input < 5) {
         User_Input = 5;
       }
-      REV = map (User_Input, 10, angle, 0, PPR); // mapping degree into pulse
+      REV = map (User_Input, minAngle, maxAngle, 0, PPR); // mapping degree into pulse
       setpoint = REV;                    //Destination in revolutions - PID will work to achive this value consider as SET value
 
     }
@@ -257,20 +272,6 @@ void loop() {
 
   // ********************
 
-
-  // ******************** Do things on times ********************
-
-  // if (now.hour() == 0 && now.minute() == 0) {
-  //      digitalWrite (RELAY, HIGH);
-  //}
-
-  if (now.hour() == 18 && now.minute() == 5) {
-    Serial.println("****** IT'S TIME ********");
-    REV = map (92, 10, angle, 0, PPR); // mapping degree into pulse
-    setpoint = REV;                    //Destination in revolutions - PID will work to achive this value consider as SET value
-  }
-
-  // **************************************************************
 
 
 
