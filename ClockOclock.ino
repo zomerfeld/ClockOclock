@@ -182,10 +182,11 @@ void setup() {
 
 // NOT READY THERE MIGHT BE A MAX NUMBER OF ALARMS AND I HAVE TO FIGURE THAT OUT AND RELEASE SOME
 
-// Test Alarms
+// ***** Test Alarms *****
   Alarm.alarmRepeat(15, 52, 0, move90fm);
-  moveSecAl = Alarm.timerRepeat(6, moveSec); // move every 6 seconds
   Alarm.timerRepeat(5, showTime); // show time every 5 seconds
+
+  moveSecAl = Alarm.timerRepeat(6, moveSec); // move every 6 seconds -- disabled currently 
 
 
 // ******************** ****************** ********************
