@@ -42,7 +42,7 @@ PID myPID(&input, &output, &setpoint, kp, ki, kd, DIRECT);
 // *** LIMIT SWITCH  ***
 #define limitSwPin A0 // The pin for the limit switch.  
 // For a regular switch, set as INPUT_PULLUP and connect the switch to GND and look for LOW for trigger. (https://www.arduino.cc/en/Tutorial/DigitalInputPullup)
-int magnetHigh = 536; // high range for magnet detection (460+578?)
+int magnetHigh = 530; // It will only move if between these values! 
 int magnetLow = 480;
 
 
@@ -71,6 +71,7 @@ volatile long encoderValue = 0; // Raw encoder value
 int PPR = 7124;  // Encoder Pulse per revolution.
 int minAngle = 10; // Maximum degree of motion.
 int maxAngle = 170; // Maximum degree of motion.
+int destAngle = 0;
 int REV = 0;          // Set point REQUIRED ENCODER VALUE
 int lastMSB = 0;
 int lastLSB = 0;
@@ -80,6 +81,16 @@ int maxGap = 20; // how much tolerance for overshoot or undershoot to say "good 
 //these are  storage containers for messaging
 long oldPosition  = -999;
 long newPosition;
+
+
+// *** ALARM / SECOND VARIABLES ***
+
+AlarmId moveSecAl;
+bool incrementalToggle = false;
+
+int secondSpeed = 95; //the speed to move when moving once per second
+int secondAngle = 1; // the angle-per-move change when moving once a second
+
 
 // ************************** SETUP **************************
 void setup() {
@@ -153,25 +164,31 @@ void setup() {
   REV = map (90, minAngle, maxAngle, 0, PPR); // mapping degree into pulse
   setpoint = REV;                    //Destination in revolutions - PID will work to achive this value consider as SET value      REV = map (User_Input, 10, angle, 0, PPR); // mapping degree into pulse
 
-  // ******************** Do things on times ********************
+// ******************** Do things on times ********************
+//
+//  Alarm.alarmRepeat(20, 59, 57, move90fm);
+//  Alarm.alarmRepeat(22, 0, 0, move100fm);
+//  Alarm.alarmRepeat(23, 0, 0, moveRest);
+//
+//  
+//  Alarm.alarmRepeat(5, 49, 57, move550am);
+//  Alarm.alarmRepeat(6, 0, 0, move600am);
+//  Alarm.alarmRepeat(7, 0, 0, move700am);
+//  Alarm.alarmRepeat(8, 0, 0, move800am);
+//  Alarm.alarmRepeat(9, 0, 0, move900am);
+//  Alarm.alarmRepeat(10, 0, 0, move1000am);
+//  Alarm.alarmRepeat(11, 0, 0, move1100am);
+//  Alarm.alarmRepeat(12, 0, 0, moveRest);
 
-  Alarm.alarmRepeat(20, 59, 57, move90fm);
-  Alarm.alarmRepeat(22, 0, 0, move100fm);
-  Alarm.alarmRepeat(23, 0, 0, moveRest);
+// NOT READY THERE MIGHT BE A MAX NUMBER OF ALARMS AND I HAVE TO FIGURE THAT OUT AND RELEASE SOME
 
-  
-  Alarm.alarmRepeat(5, 49, 57, move550am);
-  Alarm.alarmRepeat(6, 0, 0, move600am);
-  Alarm.alarmRepeat(7, 0, 0, move700am);
-  Alarm.alarmRepeat(8, 0, 0, move800am);
-  Alarm.alarmRepeat(9, 0, 0, move900am);
-  Alarm.alarmRepeat(10, 0, 0, move1000am);
-  Alarm.alarmRepeat(11, 0, 0, move1100am);
-  Alarm.alarmRepeat(12, 0, 0, moveRest);
-  
+// Test Alarms
+  Alarm.alarmRepeat(15, 52, 0, move90fm);
+  moveSecAl = Alarm.timerRepeat(6, moveSec); // move every 6 seconds
+  Alarm.timerRepeat(5, showTime); // show time every 5 seconds
 
 
-  // ******************** ****************** ********************
+// ******************** ****************** ********************
 
 }
 
@@ -181,6 +198,12 @@ void loop() {
   // ***** UPDATE TIME *****
   //  timer.run();
   Alarm.delay(1);
+
+if (incrementalToggle == false) { // decide if to move incrementally or not
+  Alarm.disable(moveSecAl);
+} else {
+  Alarm.enable(moveSecAl);
+}
 
 
   // ***** READ ENCODER *****

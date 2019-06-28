@@ -12,19 +12,9 @@ void showTime() {
   Serial.print ("encoder position: "); // DEBUG - Disable eventually
   Serial.println(newPosition); // DEBUG - Disable eventually
 
-//  // debug - print an MaxPosition
-//  Serial.print ("max position: "); // DEBUG - Disable eventually
-//  Serial.println(maxPosition); // DEBUG - Disable eventually
-
-
-  //
-  //  if (now.second() >= lastSecond+5) { //this condition doesn't work
-  //    long destPosition = newPosition + 300;
-  //    moveTo(255, 1, destPosition);
-  //    lastSecond = now.second();
-  //    Serial.println(now.second(), DEC);
-  //    Serial.println("moving a second");
-  //  }
+//  debug - print an MaxPosition
+  Serial.print ("max position: "); // DEBUG - Disable eventually
+  Serial.println(maxPosition-50); // DEBUG - Disable eventually
 
 }
 
@@ -36,10 +26,27 @@ void moveRest () {
   setpoint = REV;                    //Destination in revolutions - PID will work to achive this value consider as SET value
 }
 
+void moveSec() { // *** NOT READY YET
+  Serial.println("****** Second Moving ********");
+  destAngle = destAngle+secondAngle;
+  REV = map(destAngle, minAngle, maxAngle, 0, PPR); // mapping degree into pulse
+  setpoint = REV; //Destination in revolutions - PID will work to achive this value consider as SET value
+}
+
 void move90fm () {
   Serial.println("****** IT'S TIME ********");
-  REV = map (92, minAngle, maxAngle, 0, PPR); // mapping degree into pulse
-  setpoint = REV;                    //Destination in revolutions - PID will work to achive this value consider as SET value
+  incrementalToggle = false;  // Disable incremental move
+  motorSpeed(150); // Set Speed 
+  destAngle = 25; // Destination Angle
+  REV = map (destAngle, minAngle, maxAngle, 0, PPR); // mapping degree into pulse
+  setpoint = REV; //Destination in revolutions - PID will work to achive this value consider as SET value
+
+  Serial.println("****** time to move by second ********");
+  secondSpeed = 95; // Set Speed for incremental
+  secondAngle = ((74-25)/360); // Calculate degrees -- rewrite this 
+  Serial.print("Tiny move Angle: ");
+  Serial.println(secondAngle);
+  incrementalToggle = false // NOT READY YET - Change to TRUE to move the incremental change - not ready yet! 
 }
 
 void move100fm () {

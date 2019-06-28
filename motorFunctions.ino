@@ -86,7 +86,7 @@ void findEdges () {
   Serial.println(encoderValue);
 
   pwmOut(100); // move FWD a bit
-  delay(3000); //
+  delay(2000); //
 
 
   while ((analogRead(limitSwPin) <= magnetHigh) && (analogRead(limitSwPin) >= magnetLow)) { // numbers might need adjusting based on analog reads of hall sensor
@@ -99,15 +99,15 @@ void findEdges () {
     }
   }
 
-  maxPosition = newPosition+200;
+  maxPosition = newPosition+50;
   Serial.println("*** FOUND MAX EDGE ***"); // DEBUG - Disable eventually
   stopMotor();
   Serial.print("MAX Position: ");
   Serial.println(maxPosition); // DEBUG - Disable eventually
   PPR = maxPosition;
   delay(3000);
-  Serial.println("Moving to 0 deg");
-  setpoint = 0;
+  Serial.println("Moving to minAngle deg");
+  setpoint = 90;
   return;
 
 }
