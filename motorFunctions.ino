@@ -4,7 +4,7 @@ void pwmOut(int out) {
     forward();                           // calling motor to move forward
     //Serial.print("Moving FWD: ");
     //Serial.println(out);
-//    checkMax(); //stops the motor from moving past the max point.
+    //    checkMax(); //stops the motor from moving past the max point.
   }
   else {
     analogWrite(motorSpeedPin, abs(out));          // if REV < encoderValue motor move in forward direction.
@@ -58,10 +58,14 @@ void motorSpeed(int reqSpeed) {
 void findEdges () {
   //This function finds the edges for the motor movements - Max and Min
   // uses a limit switch (or a hall magnet switch)
+  // it will go all the way back, mark the zero point and then all the way forward (find the max point)
+  // then it goes to a specific angle between (see setpoint below)
+  // this can be triggered manually by putting "reset" into the serial command. 
 
   Serial.println("FINDING EDGES");
   delay(3000);
   while ((analogRead(limitSwPin) <= magnetHigh) && (analogRead(limitSwPin) >= magnetLow)) { // numbers might need adjusting based on analog reads of hall sensor
+
     Serial.println("Running");
     pwmOut(-200);
     delay(150);
@@ -72,14 +76,13 @@ void findEdges () {
     newPosition = encoderValue;
     if (newPosition != oldPosition) {
       oldPosition = newPosition;
-      Serial.print ("encoder position: "); // DEBUG - Disable eventually
-      Serial.println(newPosition); // DEBUG - Disable eventually
+      //      Serial.print ("encoder position: "); // DEBUG - Disable eventually
+      //      Serial.println(newPosition); // DEBUG - Disable eventually
     }
   }
 
   Serial.println("*** FOUND MIN EDGE ***"); // DEBUG - Disable eventually
   stopMotor();
-
   encoderValue = 0; // writes 0 to the encoder location
   Serial.println("Limit Switch Activated - MIN"); // DEBUG
   Serial.print("New Limit: "); // DEBUG
@@ -88,26 +91,30 @@ void findEdges () {
   pwmOut(100); // move FWD a bit
   delay(2000); //
 
+  while ((analogRead(limitSwPin) <= magnetHigh) && (analogRead(limitSwPin) >= magnetLow)) { // move only when not on limits. Does this even work??? NZ
+    // numbers might need adjusting based on analog reads of hall sensor
 
-  while ((analogRead(limitSwPin) <= magnetHigh) && (analogRead(limitSwPin) >= magnetLow)) { // numbers might need adjusting based on analog reads of hall sensor
     pwmOut(150); // move FWD
+    Serial.println(FINDING MAX POINT); // DEBUG - Disable eventually
     newPosition = encoderValue;
     if (newPosition != oldPosition) {
       oldPosition = newPosition;
-      Serial.print ("encoder position: "); // DEBUG - Disable eventually
-      Serial.println(newPosition); // DEBUG - Disable eventually
+            Serial.print ("encoder position: "); // DEBUG - Disable eventually
+            Serial.println(newPosition); // DEBUG - Disable eventually
+      Serial.print("LIMIT - HALL SENSOR READING: ");
+      Serial.println(analogRead(limitSwPin));
     }
   }
 
-  maxPosition = newPosition+50;
+  maxPosition = newPosition + 50;
   Serial.println("*** FOUND MAX EDGE ***"); // DEBUG - Disable eventually
   stopMotor();
   Serial.print("MAX Position: ");
   Serial.println(maxPosition); // DEBUG - Disable eventually
   PPR = maxPosition;
-  delay(3000);
+  delay(3000); // wait 3 seconds
   Serial.println("Moving to minAngle deg");
-  setpoint = 90;
+  setpoint = 90; // the angle we want it to go with after finding edges
   return;
 
 }

@@ -42,8 +42,8 @@ PID myPID(&input, &output, &setpoint, kp, ki, kd, DIRECT);
 // *** LIMIT SWITCH  ***
 #define limitSwPin A0 // The pin for the limit switch.  
 // For a regular switch, set as INPUT_PULLUP and connect the switch to GND and look for LOW for trigger. (https://www.arduino.cc/en/Tutorial/DigitalInputPullup)
-int magnetHigh = 530; // It will only move if between these values! 
-int magnetLow = 480;
+int magnetHigh = 520; // It will only move if between these values!
+int magnetLow = 499;
 
 
 // *** SERIAL VARIABLES ***
@@ -92,7 +92,16 @@ int secondSpeed = 95; //the speed to move when moving once per second
 int secondAngle = 1; // the angle-per-move change when moving once a second
 
 
+// ************************************************************************************************************************************************
+
+
+
+
+
+
+
 // ************************** SETUP **************************
+
 void setup() {
 
   // ***** STARTS SERIAL & RTC *****
@@ -101,17 +110,15 @@ void setup() {
   Serial.println("***STARTING RTC***");
   setSyncProvider(RTC.get);   // the function to get the time from the RTC
   setSyncInterval(8000);         // set the number of seconds between re-sync
-
-
   readString.reserve(200);   // reserve 200 bytes for the readString
 
 
-  // Setting Timers
+  // *** Setting Timers ***
   //  timer.setInterval(4999, showTime); // This will display the time every 5 seconds on serial. Disable if needed.
   //  timer.setInterval(1000, minuteMove); // This will move the motor every minute. Not needed currently
   //  timer.setInterval(5000, fiveSecMove); //moves the motor every 5 second forward. Should not be enabled by default
 
-
+  // *** Set time on RTC ***
   // following line sets the RTC to the date & time this sketch was compiled
   //   rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
   // This line sets the RTC with an explicit date & time,
@@ -131,14 +138,15 @@ void setup() {
   pinMode(backButton, INPUT_PULLUP);
   pinMode(debugLED, OUTPUT);
 
+  // encoder parameters
   digitalWrite(encoderPin1, HIGH); //turn pullup resistor on
   digitalWrite(encoderPin2, HIGH); //turn pullup resistor on
-
   // *** call updateEncoder() when any high/low changed seen
   //     on interrupt 0 (pin 2), or interrupt 1 (pin 3)
   attachInterrupt(0, updateEncoder, CHANGE);
   attachInterrupt(1, updateEncoder, CHANGE);
-
+  REV = map (90, minAngle, maxAngle, 0, PPR); // mapping degree into pulse
+  setpoint = REV;                    //Destination in revolutions - PID will work to achive this value consider as SET value      REV = map (User_Input, 10, angle, 0, PPR); // mapping degree into pulse
 
   TCCR1B = TCCR1B & 0b11111000 | 1;  // set 31KHz PWM to prevent motor noise
 
@@ -148,8 +156,7 @@ void setup() {
   //  myPID.SetOutputLimits(-200, 200); // this is the MAX PWM value to move motor, here change in value reflect change in speed of motor.
   motorSpeed(200); // Sets Motor Speed // 70 is too slow
 
-  digitalWrite(enablePin, HIGH); // Turns the motor on
-
+  // Buttons
   debouncer1.attach(fwdButton);
   debouncer2.attach(backButton);
   debouncer1.interval(90); // 90 seemed to work fast enough. Test and modify if needed
@@ -159,52 +166,54 @@ void setup() {
   //  debouncer.attach(limitSwPin);
   //  debouncer.interval(90); // 90 seemed to work fast enough. Test and modify if needed
 
-  findEdges();
+  // motor settings
+  digitalWrite(enablePin, HIGH); // Turns the motor on
+  findEdges(); // **** Start the find edges module ****
 
-  REV = map (90, minAngle, maxAngle, 0, PPR); // mapping degree into pulse
-  setpoint = REV;                    //Destination in revolutions - PID will work to achive this value consider as SET value      REV = map (User_Input, 10, angle, 0, PPR); // mapping degree into pulse
 
-// ******************** Do things on times ********************
-//
-//  Alarm.alarmRepeat(20, 59, 57, move90fm);
-//  Alarm.alarmRepeat(22, 0, 0, move100fm);
-//  Alarm.alarmRepeat(23, 0, 0, moveRest);
-//
-//  
-//  Alarm.alarmRepeat(5, 49, 57, move550am);
-//  Alarm.alarmRepeat(6, 0, 0, move600am);
-//  Alarm.alarmRepeat(7, 0, 0, move700am);
-//  Alarm.alarmRepeat(8, 0, 0, move800am);
-//  Alarm.alarmRepeat(9, 0, 0, move900am);
-//  Alarm.alarmRepeat(10, 0, 0, move1000am);
-//  Alarm.alarmRepeat(11, 0, 0, move1100am);
-//  Alarm.alarmRepeat(12, 0, 0, moveRest);
-
-// NOT READY THERE MIGHT BE A MAX NUMBER OF ALARMS AND I HAVE TO FIGURE THAT OUT AND RELEASE SOME
-
-// ***** Test Alarms *****
+  // ***** Test Alarms *****
   Alarm.alarmRepeat(15, 52, 0, move90fm);
   Alarm.timerRepeat(5, showTime); // show time every 5 seconds
 
-  moveSecAl = Alarm.timerRepeat(6, moveSec); // move every 6 seconds -- disabled currently 
+  //  moveSecAl = Alarm.timerRepeat(6, moveSec); // move every 6 seconds -- disabled currently
 
+  // ********** Do things on times **********
+  //  Alarm.alarmRepeat(20, 59, 57, move90fm);
+  //  Alarm.alarmRepeat(22, 0, 0, move100fm);
+  //  Alarm.alarmRepeat(23, 0, 0, moveRest);
+  //
+  //  Alarm.alarmRepeat(5, 49, 57, move550am);
+  //  Alarm.alarmRepeat(6, 0, 0, move600am);
+  //  Alarm.alarmRepeat(7, 0, 0, move700am);
+  //  Alarm.alarmRepeat(8, 0, 0, move800am);
+  //  Alarm.alarmRepeat(9, 0, 0, move900am);
+  //  Alarm.alarmRepeat(10, 0, 0, move1000am);
+  //  Alarm.alarmRepeat(11, 0, 0, move1100am);
+  //  Alarm.alarmRepeat(12, 0, 0, moveRest);
 
-// ******************** ****************** ********************
+  // NOT READY THERE MIGHT BE A MAX NUMBER OF ALARMS AND I HAVE TO FIGURE THAT OUT AND RELEASE SOME
 
 }
+
+
+// *************************************************************************************************************************************************************************************
+
+
+
+
 
 // ************************** LOOP **************************
 
 void loop() {
   // ***** UPDATE TIME *****
-  //  timer.run();
-  Alarm.delay(1);
+  //  timer.run(); //timers - if you're using them enable that. I'm currently using Alarms, not timers.
+  Alarm.delay(1); // Add second to the alarm
 
-if (incrementalToggle == false) { // decide if to move incrementally or not
-  Alarm.disable(moveSecAl);
-} else {
-  Alarm.enable(moveSecAl);
-}
+  if (incrementalToggle == false) { // decide if to move incrementally (every second) or not
+    Alarm.disable(moveSecAl);
+  } else {
+    Alarm.enable(moveSecAl);
+  }
 
 
   // ***** READ ENCODER *****
@@ -215,11 +224,43 @@ if (incrementalToggle == false) { // decide if to move incrementally or not
     Serial.println(newPosition); // DEBUG - Disable eventually
   }
 
-
+  //checks the switches
   debouncer1.update(); //checks the switches
   debouncer2.update();
 
-  // *** Debug LED for Limit Switches
+  // ***** MANUAL CONTROL BUTTONS *****
+
+  if (debouncer1.fell()) { //if the button went to low (set to pullup)
+    digitalWrite(debugLED, HIGH); //turn on debug led
+    Serial.println("moving manually");
+    forward();
+    analogWrite(motorSpeedPin, 200);
+  }
+
+  if (debouncer2.fell()) {
+    digitalWrite(debugLED, HIGH); //turn on debug led
+    Serial.println("moving manually");
+    reverse();
+    analogWrite(motorSpeedPin, 200);
+  }
+
+  if (debouncer1.rose()) { //when the buttons are not pressed anymore
+    Serial.println("Button 1 rose");
+    digitalWrite(debugLED, LOW); //turn off debug led
+    setpoint = encoderValue;
+    stopMotor();
+  }
+
+  if (debouncer2.rose()) {
+    Serial.println("Button 2 rose");
+    digitalWrite(debugLED, LOW); //turn off debug led
+    setpoint = encoderValue;
+    stopMotor();
+  }
+
+  // ********************
+
+ // *** Debug LED for Limit Switches
   if ((analogRead(limitSwPin) >= magnetHigh) || (analogRead(limitSwPin) <= magnetLow)) { // numbers might need adjusting based on analog reads of hall sensor
     digitalWrite(debugLED, HIGH); //turn on debug led
     Serial.print("LIMIT - HALL SENSOR READING: ");
@@ -264,50 +305,16 @@ if (incrementalToggle == false) { // decide if to move incrementally or not
 
   input = encoderValue ;           // data from encoder consider as a Process value
 
-  // ***** MANUAL CONTROL BUTTONS *****
 
-  if (debouncer1.fell()) { //if the button went to low (set to pullup)
-    digitalWrite(debugLED, HIGH); //turn on debug led
-    Serial.println("moving manually");
-    forward();
-    analogWrite(motorSpeedPin, 200);
-  }
-
-  if (debouncer2.fell()) {
-    digitalWrite(debugLED, HIGH); //turn on debug led
-    Serial.println("moving manually");
-    reverse();
-    analogWrite(motorSpeedPin, 200);
-  }
-
-  if (debouncer1.rose()) { //when the buttons are not pressed anymore
-    Serial.println("Button 1 rose");
-    digitalWrite(debugLED, LOW); //turn off debug led
-    setpoint = encoderValue;
-    stopMotor();
-  }
-
-  if (debouncer2.rose()) {
-    Serial.println("Button 2 rose");
-    digitalWrite(debugLED, LOW); //turn off debug led
-    setpoint = encoderValue;
-    stopMotor();
-  }
-
-  // ********************
-
-
-
-
-  // *** CHECK FOR DESTINATION STOP ***
+  // *** CHECK FOR DESTINATION STOP *** //DOES THIS WORK???? (NZ)
   double gap = abs(setpoint - input); //distance away from setpoint
   if ((digitalRead(fwdButton) == 1) && (digitalRead(backButton) == 1)) {
     if (gap < maxGap) { //we're close to setpoint, stop
-      //      Serial.println("*** CLOSE TO GAP ***"); // DEBUG - Disable eventually
-      //      Serial.print("Buttons State ");
-      //      Serial.print(digitalRead(fwdButton));
-      //      Serial.print("       ");
-      //      Serial.println(digitalRead(backButton));
+            Serial.println("*** CLOSE TO GAP ***"); // DEBUG - Disable eventually
+            Serial.print("Buttons State ");
+            Serial.print(digitalRead(fwdButton));
+            Serial.print("       ");
+            Serial.println(digitalRead(backButton));
       stopMotor();
     }
     else // **** MOVE MOVE MOVE ****
@@ -326,18 +333,18 @@ if (incrementalToggle == false) { // decide if to move incrementally or not
     }
   }
 
-
   // clear the string:
   readString = ""; // Cleaning User input, ready for new Input
   stringComplete = false;
+  
+  // Print the hall sensor reading (Every time? NZ) 
+  Serial.print("LIMIT - HALL SENSOR READING: ");
+  Serial.println(analogRead(limitSwPin));
+} //  *** end of loop ***
 
 
-
-
-}
-
-
-void updateEncoder() {
+//encoder function
+void updateEncoder() { 
   int MSB = digitalRead(encoderPin1); //MSB = most significant bit
   int LSB = digitalRead(encoderPin2); //LSB = least significant bit
 

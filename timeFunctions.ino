@@ -1,9 +1,10 @@
 
 // **** Time Functions ****
 
-void showTime() {
+void showTime() { // show current time
   digitalClockDisplay();
 
+  //also show some debug notes.
   //debug - prints the hall sensor read on limit switch
   Serial.print("hall sensor read = ");
   Serial.println(analogRead(limitSwPin));
@@ -46,7 +47,7 @@ void move90fm () {
   secondAngle = ((74-25)/360); // Calculate degrees -- rewrite this 
   Serial.print("Tiny move Angle: ");
   Serial.println(secondAngle);
-  incrementalToggle = false // NOT READY YET - Change to TRUE to move the incremental change - not ready yet! 
+  incrementalToggle = false; // NOT READY YET - Change to TRUE to move the incremental change - not ready yet! 
 }
 
 void move100fm () {
@@ -100,7 +101,6 @@ void move1100am () {
   REV = map (110, minAngle, maxAngle, 0, PPR); // mapping degree into pulse
   setpoint = REV;                    //Destination in revolutions - PID will work to achive this value consider as SET value
 }
-
 
 
 
