@@ -318,34 +318,34 @@ void loop() {
   double gap = abs(setpoint - input); //distance away from setpoint
   if ((digitalRead(fwdButton) == 1) && (digitalRead(backButton) == 1)) {
     if (gap < maxGap) { //we're close to setpoint, stop
-      if ((currentMillis - previousMillis) >= printInterval) { // enough time passed yet?
-//        Serial.println("*** CLOSE TO GAP ***"); // DEBUG - Disable eventually
-        Serial.print("Buttons State ");
-        Serial.print(digitalRead(fwdButton));
-        Serial.print("       ");
-        Serial.println(digitalRead(backButton));
-      }
-      stopMotor();
+      //      if ((currentMillis - previousMillis) >= printInterval) { // enough time passed yet?
+      //        Serial.println("*** CLOSE TO GAP ***"); // DEBUG - Disable eventually
+      //        Serial.print("Buttons State ");
+      //        Serial.print(digitalRead(fwdButton));
+      //        Serial.print("       ");
+      //        Serial.println(digitalRead(backButton));
     }
-    else // **** MOVE MOVE MOVE ****
-    {
-      //we're far from setpoint
-      myPID.Compute();                 // calculate new output
-      pwmOut(output);
-      //      Serial.print("this is REV: ");
-      //      Serial.println(REV);
-      Serial.print("encoderValue: ");
-      Serial.print(encoderValue);
-      Serial.print("   (g:");
-      Serial.print(gap);
-      Serial.println(")");
-
-    }
+    stopMotor();
   }
+  else // **** MOVE MOVE MOVE ****
+  {
+    //we're far from setpoint
+    myPID.Compute();                 // calculate new output
+    pwmOut(output);
+    //      Serial.print("this is REV: ");
+    //      Serial.println(REV);
+    Serial.print("encoderValue: ");
+    Serial.print(encoderValue);
+    Serial.print("   (g:");
+    Serial.print(gap);
+    Serial.println(")");
 
-  // clear the string:
-  readString = ""; // Cleaning User input, ready for new Input
-  stringComplete = false;
+  }
+}
+
+// clear the string:
+readString = ""; // Cleaning User input, ready for new Input
+stringComplete = false;
 
 //  // Print the hall sensor reading (Every time? NZ)
 //  if ((currentMillis - previousMillis) >= printInterval) { // enough time passed yet?
