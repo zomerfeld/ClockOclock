@@ -324,7 +324,7 @@ void loop() {
       //        Serial.print(digitalRead(fwdButton));
       //        Serial.print("       ");
       //        Serial.println(digitalRead(backButton));
-    }
+//    }
     stopMotor();
   }
   else // **** MOVE MOVE MOVE ****
