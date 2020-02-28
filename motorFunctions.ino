@@ -95,7 +95,7 @@ void findEdges () {
     // numbers might need adjusting based on analog reads of hall sensor
 
     pwmOut(150); // move FWD
-    Serial.println(FINDING MAX POINT); // DEBUG - Disable eventually
+    Serial.println("FINDING MAX POINT"); // DEBUG - Disable eventually
     newPosition = encoderValue;
     if (newPosition != oldPosition) {
       oldPosition = newPosition;

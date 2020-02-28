@@ -3,6 +3,9 @@
 #include <SimpleTimer.h>
 SimpleTimer timer; // the timer object
 // timer library - https://github.com/zomerfeld/SimpleTimerArduino
+unsigned long previousMillis = 0;        // will store last time LED was updated
+const long printInterval = 1000;           // interval at which to blink (milliseconds)
+
 
 // ***** PID *****
 #include <PID_v1.h>
@@ -206,6 +209,7 @@ void setup() {
 
 void loop() {
   // ***** UPDATE TIME *****
+  unsigned long currentMillis = millis(); // all time elements are data type unsigned long
   //  timer.run(); //timers - if you're using them enable that. I'm currently using Alarms, not timers.
   Alarm.delay(1); // Add second to the alarm
 
@@ -220,8 +224,10 @@ void loop() {
   newPosition = encoderValue;
   if (newPosition != oldPosition) {
     oldPosition = newPosition;
-    Serial.print ("encoder position: "); // Prints value changes. DEBUG - Disable eventually
-    Serial.println(newPosition); // DEBUG - Disable eventually
+    if ((currentMillis - previousMillis) >= printInterval) { // enough time passed yet?
+      Serial.print ("encoder position: "); // Prints value changes. DEBUG - Disable eventually
+      Serial.println(newPosition); // DEBUG - Disable eventually
+    }
   }
 
   //checks the switches
@@ -260,11 +266,13 @@ void loop() {
 
   // ********************
 
- // *** Debug LED for Limit Switches
+  // *** Debug LED for Limit Switches
   if ((analogRead(limitSwPin) >= magnetHigh) || (analogRead(limitSwPin) <= magnetLow)) { // numbers might need adjusting based on analog reads of hall sensor
     digitalWrite(debugLED, HIGH); //turn on debug led
-    Serial.print("LIMIT - HALL SENSOR READING: ");
-    Serial.println(analogRead(limitSwPin));
+    if ((currentMillis - previousMillis) >= printInterval) { // enough time passed yet?
+      Serial.print("LIMIT - HALL SENSOR READING: ");
+      Serial.println(analogRead(limitSwPin));
+    }
   } else {
     digitalWrite(debugLED, LOW); //turn off debug LED
   }
@@ -310,11 +318,13 @@ void loop() {
   double gap = abs(setpoint - input); //distance away from setpoint
   if ((digitalRead(fwdButton) == 1) && (digitalRead(backButton) == 1)) {
     if (gap < maxGap) { //we're close to setpoint, stop
-            Serial.println("*** CLOSE TO GAP ***"); // DEBUG - Disable eventually
-            Serial.print("Buttons State ");
-            Serial.print(digitalRead(fwdButton));
-            Serial.print("       ");
-            Serial.println(digitalRead(backButton));
+      if ((currentMillis - previousMillis) >= printInterval) { // enough time passed yet?
+//        Serial.println("*** CLOSE TO GAP ***"); // DEBUG - Disable eventually
+        Serial.print("Buttons State ");
+        Serial.print(digitalRead(fwdButton));
+        Serial.print("       ");
+        Serial.println(digitalRead(backButton));
+      }
       stopMotor();
     }
     else // **** MOVE MOVE MOVE ****
@@ -336,15 +346,17 @@ void loop() {
   // clear the string:
   readString = ""; // Cleaning User input, ready for new Input
   stringComplete = false;
-  
-  // Print the hall sensor reading (Every time? NZ) 
-  Serial.print("LIMIT - HALL SENSOR READING: ");
-  Serial.println(analogRead(limitSwPin));
+
+//  // Print the hall sensor reading (Every time? NZ)
+//  if ((currentMillis - previousMillis) >= printInterval) { // enough time passed yet?
+//    Serial.print("LIMIT - HALL SENSOR READING: ");
+//    Serial.println(analogRead(limitSwPin));
+//  }
 } //  *** end of loop ***
 
 
 //encoder function
-void updateEncoder() { 
+void updateEncoder() {
   int MSB = digitalRead(encoderPin1); //MSB = most significant bit
   int LSB = digitalRead(encoderPin2); //LSB = least significant bit
 
