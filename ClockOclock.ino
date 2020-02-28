@@ -4,7 +4,7 @@
 SimpleTimer timer; // the timer object
 // timer library - https://github.com/zomerfeld/SimpleTimerArduino
 unsigned long previousMillis = 0;        // will store last time LED was updated
-const long printInterval = 1000;           // interval at which to blink (milliseconds)
+const long printInterval = 3000;           // interval at which to blink (milliseconds)
 
 
 // ***** PID *****
@@ -225,6 +225,7 @@ void loop() {
   if (newPosition != oldPosition) {
     oldPosition = newPosition;
     if ((currentMillis - previousMillis) >= printInterval) { // enough time passed yet?
+      previousMillis = currentMillis;
       Serial.print ("encoder position: "); // Prints value changes. DEBUG - Disable eventually
       Serial.println(newPosition); // DEBUG - Disable eventually
     }
@@ -270,6 +271,7 @@ void loop() {
   if ((analogRead(limitSwPin) >= magnetHigh) || (analogRead(limitSwPin) <= magnetLow)) { // numbers might need adjusting based on analog reads of hall sensor
     digitalWrite(debugLED, HIGH); //turn on debug led
     if ((currentMillis - previousMillis) >= printInterval) { // enough time passed yet?
+      previousMillis = currentMillis;
       Serial.print("LIMIT - HALL SENSOR READING: ");
       Serial.println(analogRead(limitSwPin));
     }
@@ -299,6 +301,40 @@ void loop() {
       Serial.println("Reset - FindingEdges");
       findEdges();
       readString = ""; // Cleaning User input, ready for new Input
+    } else if (readString == "m90f") {
+      Serial.println("moving to 90FM");
+      move90fm ();
+      readString = ""; // Cleaning User input, ready for new Input
+    } else if (readString == "m100f") {
+      Serial.println("moving to 100fm");
+      move100fm();
+      readString = ""; // Cleaning User input, ready for new Input
+    } else if (readString == "m550a") {
+      move550am ();
+      readString = ""; // Cleaning User input, ready for new Input
+    } else if (readString == "m600a") {
+      move600am ();
+      readString = ""; // Cleaning User input, ready for new Input
+    } else if (readString == "m700a") {
+      move700am ();
+      readString = ""; // Cleaning User input, ready for new Input
+    } else if (readString == "m800a") {
+      move800am ();
+      readString = ""; // Cleaning User input, ready for new Input
+    } else if (readString == "m900a") {
+      move900am ();
+      readString = ""; // Cleaning User input, ready for new Input
+    } else if (readString == "m1000a") {
+      move1000am ();
+      readString = ""; // Cleaning User input, ready for new Input
+    } else if (readString == "m1100a") {
+      move1100am ();
+      readString = ""; // Cleaning User input, ready for new Input
+    } else if (readString == "rest") {
+      moveRest ();
+      readString = ""; // Cleaning User input, ready for new Input
+
+
     } else {
       Serial.println(readString.toInt());  //printing the input data in integer form
       User_Input = readString.toInt();   // here input data is store in integer form
@@ -319,39 +355,41 @@ void loop() {
   if ((digitalRead(fwdButton) == 1) && (digitalRead(backButton) == 1)) {
     if (gap < maxGap) { //we're close to setpoint, stop
       //      if ((currentMillis - previousMillis) >= printInterval) { // enough time passed yet?
+      //        previousMillis = currentMillis;
       //        Serial.println("*** CLOSE TO GAP ***"); // DEBUG - Disable eventually
       //        Serial.print("Buttons State ");
       //        Serial.print(digitalRead(fwdButton));
       //        Serial.print("       ");
       //        Serial.println(digitalRead(backButton));
-//    }
-    stopMotor();
+      //    }
+      stopMotor();
+    }
+    else // **** MOVE MOVE MOVE ****
+    {
+      //we're far from setpoint
+      myPID.Compute();                 // calculate new output
+      pwmOut(output);
+      //      Serial.print("this is REV: ");
+      //      Serial.println(REV);
+      Serial.print("encoderValue: ");
+      Serial.print(encoderValue);
+      Serial.print("   (g:");
+      Serial.print(gap);
+      Serial.println(")");
+
+    }
   }
-  else // **** MOVE MOVE MOVE ****
-  {
-    //we're far from setpoint
-    myPID.Compute();                 // calculate new output
-    pwmOut(output);
-    //      Serial.print("this is REV: ");
-    //      Serial.println(REV);
-    Serial.print("encoderValue: ");
-    Serial.print(encoderValue);
-    Serial.print("   (g:");
-    Serial.print(gap);
-    Serial.println(")");
 
-  }
-}
+  // clear the string:
+  readString = ""; // Cleaning User input, ready for new Input
+  stringComplete = false;
 
-// clear the string:
-readString = ""; // Cleaning User input, ready for new Input
-stringComplete = false;
-
-//  // Print the hall sensor reading (Every time? NZ)
-//  if ((currentMillis - previousMillis) >= printInterval) { // enough time passed yet?
-//    Serial.print("LIMIT - HALL SENSOR READING: ");
-//    Serial.println(analogRead(limitSwPin));
-//  }
+  //  // Print the hall sensor reading (Every time? NZ)
+  //  if ((currentMillis - previousMillis) >= printInterval) { // enough time passed yet?
+  //    previousMillis = currentMillis;
+  //    Serial.print("LIMIT - HALL SENSOR READING: ");
+  //    Serial.println(analogRead(limitSwPin));
+  //  }
 } //  *** end of loop ***
 
 

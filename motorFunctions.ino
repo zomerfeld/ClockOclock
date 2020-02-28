@@ -60,17 +60,14 @@ void findEdges () {
   // uses a limit switch (or a hall magnet switch)
   // it will go all the way back, mark the zero point and then all the way forward (find the max point)
   // then it goes to a specific angle between (see setpoint below)
-  // this can be triggered manually by putting "reset" into the serial command. 
+  // this can be triggered manually by putting "reset" into the serial command.
 
   Serial.println("FINDING EDGES");
   delay(3000);
   while ((analogRead(limitSwPin) <= magnetHigh) && (analogRead(limitSwPin) >= magnetLow)) { // numbers might need adjusting based on analog reads of hall sensor
 
     Serial.println("Running");
-    pwmOut(-200);
-    delay(150);
-    pwmOut(0);
-    delay(75);
+    pwmOut(-150);
     Serial.print("Sensor: ");
     Serial.println(analogRead(limitSwPin));
     newPosition = encoderValue;
@@ -83,7 +80,7 @@ void findEdges () {
 
   Serial.println("*** FOUND MIN EDGE ***"); // DEBUG - Disable eventually
   stopMotor();
-  encoderValue = 0; // writes 0 to the encoder location
+  encoderValue = 250; // writes 0 to the encoder location
   Serial.println("Limit Switch Activated - MIN"); // DEBUG
   Serial.print("New Limit: "); // DEBUG
   Serial.println(encoderValue);
@@ -99,10 +96,11 @@ void findEdges () {
     newPosition = encoderValue;
     if (newPosition != oldPosition) {
       oldPosition = newPosition;
-            Serial.print ("encoder position: "); // DEBUG - Disable eventually
-            Serial.println(newPosition); // DEBUG - Disable eventually
-      Serial.print("LIMIT - HALL SENSOR READING: ");
+      Serial.print ("encoder position: "); // DEBUG - Disable eventually
+      Serial.println(newPosition); // DEBUG - Disable eventually
+      Serial.print("FE: LIMIT - HALL SENSOR READING: ");
       Serial.println(analogRead(limitSwPin));
+
     }
   }
 

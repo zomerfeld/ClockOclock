@@ -38,7 +38,7 @@ void move90fm () {
   Serial.println("****** IT'S TIME ********");
   incrementalToggle = false;  // Disable incremental move
   motorSpeed(150); // Set Speed 
-  destAngle = 35; // Destination Angle
+  destAngle = 28; // Destination Angle
   REV = map (destAngle, minAngle, maxAngle, 0, PPR); // mapping degree into pulse
   setpoint = REV; //Destination in revolutions - PID will work to achive this value consider as SET value
 
