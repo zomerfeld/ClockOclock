@@ -45,7 +45,7 @@ PID myPID(&input, &output, &setpoint, kp, ki, kd, DIRECT);
 // *** LIMIT SWITCH  ***
 #define limitSwPin A0 // The pin for the limit switch.  
 // For a regular switch, set as INPUT_PULLUP and connect the switch to GND and look for LOW for trigger. (https://www.arduino.cc/en/Tutorial/DigitalInputPullup)
-int magnetHigh = 520; // It will only move if between these values!
+int magnetHigh = 510; // It will only move if between these values!
 int magnetLow = 499;
 
 
@@ -301,6 +301,8 @@ void loop() {
       Serial.println("Reset - FindingEdges");
       findEdges();
       readString = ""; // Cleaning User input, ready for new Input
+    } else if (readString == "time") {
+      showTime();
     } else if (readString == "m90f") {
       Serial.println("moving to 90FM");
       move90fm ();
