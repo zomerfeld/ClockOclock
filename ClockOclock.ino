@@ -35,7 +35,6 @@ PID myPID(&input, &output, &setpoint, kp, ki, kd, DIRECT);
 #define motorSpeedPin 5 // Connect to D2 on the Pololu MD05A (Needs to be PWM pin)
 #define CWPin 6 // Connect to IN1 - Turning HIGH will change the motor direction to ClockWise
 #define CCWPin 7 // Connect to IN2 - Turning HIGH will change the motor direction to Counter ClockWise
-// (flip the A/B wires if the direction is reversed)
 
 #define fwdButton 8 //Button to move motor forward
 #define backButton 9 //Button to move motor backward
@@ -45,7 +44,7 @@ PID myPID(&input, &output, &setpoint, kp, ki, kd, DIRECT);
 // *** LIMIT SWITCH  ***
 #define limitSwPin A0 // The pin for the limit switch.  
 // For a regular switch, set as INPUT_PULLUP and connect the switch to GND and look for LOW for trigger. (https://www.arduino.cc/en/Tutorial/DigitalInputPullup)
-int magnetHigh = 510; // It will only move if between these values!
+int magnetHigh = 530; // It will only move if between these values!
 int magnetLow = 499;
 
 
@@ -65,10 +64,6 @@ long distance5Second = 5; // CHANGE - How much we need to move for 5 seconds pas
 // *** ENCODER VARIABLES ***
 int encoderPin1 = 3; //Encoder Output 'A' must connected with intreput pin of arduino.
 int encoderPin2 = 2; //Encoder Otput 'B' must connected with intreput pin of arduino.
-//         Best Performance: both pins have interrupt capability
-//         Good Performance: only the first pin has interrupt capability
-//         Low Performance:  neither pin has interrupt capability
-//         Make sure to pull UP those pins up with a 1K resistor (though the code seems to use the INPUT_PULLUP)
 volatile int lastEncoded = 0; // Here updated value of encoder store.
 volatile long encoderValue = 0; // Raw encoder value
 int PPR = 7124;  // Encoder Pulse per revolution.
@@ -79,7 +74,7 @@ int REV = 0;          // Set point REQUIRED ENCODER VALUE
 int lastMSB = 0;
 int lastLSB = 0;
 
-int maxGap = 20; // how much tolerance for overshoot or undershoot to say "good enough" and STOP motor. 20 seems a good value.
+int maxGap = 20; // how much tolerance for over/undershoot to say "good enough" and STOP motor. 20 seems a good value.
 
 //these are  storage containers for messaging
 long oldPosition  = -999;
@@ -95,14 +90,7 @@ int secondSpeed = 95; //the speed to move when moving once per second
 int secondAngle = 1; // the angle-per-move change when moving once a second
 
 
-// ************************************************************************************************************************************************
-
-
-
-
-
-
-
+// *************************************************************
 // ************************** SETUP **************************
 
 void setup() {
@@ -149,7 +137,7 @@ void setup() {
   attachInterrupt(0, updateEncoder, CHANGE);
   attachInterrupt(1, updateEncoder, CHANGE);
   REV = map (90, minAngle, maxAngle, 0, PPR); // mapping degree into pulse
-  setpoint = REV;                    //Destination in revolutions - PID will work to achive this value consider as SET value      REV = map (User_Input, 10, angle, 0, PPR); // mapping degree into pulse
+  setpoint = REV;                    //Destination in revolutions - PID will work to achive this value consider as SET value      REV = map (User_Input, 10, angle, 0, PPR);
 
   TCCR1B = TCCR1B & 0b11111000 | 1;  // set 31KHz PWM to prevent motor noise
 
@@ -175,7 +163,7 @@ void setup() {
 
 
   // ***** Test Alarms *****
-  Alarm.alarmRepeat(15, 52, 0, move90fm);
+  Alarm.alarmRepeat(19, 24, 0, move100fm);
   Alarm.timerRepeat(5, showTime); // show time every 5 seconds
 
   //  moveSecAl = Alarm.timerRepeat(6, moveSec); // move every 6 seconds -- disabled currently
@@ -195,16 +183,10 @@ void setup() {
   //  Alarm.alarmRepeat(12, 0, 0, moveRest);
 
   // NOT READY THERE MIGHT BE A MAX NUMBER OF ALARMS AND I HAVE TO FIGURE THAT OUT AND RELEASE SOME
-
 }
 
 
-// *************************************************************************************************************************************************************************************
-
-
-
-
-
+// **************************************
 // ************************** LOOP **************************
 
 void loop() {
@@ -287,56 +269,57 @@ void loop() {
       Serial.println("moving back a bit");
       reverse();
       analogWrite(motorSpeedPin, 150);
-      delay(250);
+      Alarm.delay(250);
       setpoint = encoderValue;
       stopMotor();
+      clrSrString();
     } else if (readString == "f") {
       Serial.println("moving fwd a bit");
       forward();
       analogWrite(motorSpeedPin, 150);
-      delay(250);
+      Alarm.delay(250);
       setpoint = encoderValue;
       stopMotor();
+      clrSrString();
     } else if (readString == "reset") {
       Serial.println("Reset - FindingEdges");
       findEdges();
-      readString = ""; // Cleaning User input, ready for new Input
+      clrSrString(); //Clears Serial String
     } else if (readString == "time") {
       showTime();
+      clrSrString();
     } else if (readString == "m90f") {
       Serial.println("moving to 90FM");
       move90fm ();
-      readString = ""; // Cleaning User input, ready for new Input
+      clrSrString();
     } else if (readString == "m100f") {
       Serial.println("moving to 100fm");
       move100fm();
-      readString = ""; // Cleaning User input, ready for new Input
+      clrSrString();
     } else if (readString == "m550a") {
       move550am ();
-      readString = ""; // Cleaning User input, ready for new Input
+      clrSrString();
     } else if (readString == "m600a") {
       move600am ();
-      readString = ""; // Cleaning User input, ready for new Input
+      clrSrString();
     } else if (readString == "m700a") {
       move700am ();
-      readString = ""; // Cleaning User input, ready for new Input
+      clrSrString();
     } else if (readString == "m800a") {
       move800am ();
-      readString = ""; // Cleaning User input, ready for new Input
+      clrSrString();
     } else if (readString == "m900a") {
       move900am ();
-      readString = ""; // Cleaning User input, ready for new Input
+      clrSrString();
     } else if (readString == "m1000a") {
       move1000am ();
-      readString = ""; // Cleaning User input, ready for new Input
+      clrSrString();
     } else if (readString == "m1100a") {
       move1100am ();
-      readString = ""; // Cleaning User input, ready for new Input
+      clrSrString();
     } else if (readString == "rest") {
       moveRest ();
-      readString = ""; // Cleaning User input, ready for new Input
-
-
+      clrSrString();
     } else {
       Serial.println(readString.toInt());  //printing the input data in integer form
       User_Input = readString.toInt();   // here input data is store in integer form
@@ -345,7 +328,7 @@ void loop() {
       }
       REV = map (User_Input, minAngle, maxAngle, 0, PPR); // mapping degree into pulse
       setpoint = REV;                    //Destination in revolutions - PID will work to achive this value consider as SET value
-
+      clrSrString();
     }
   }
 
@@ -382,9 +365,6 @@ void loop() {
     }
   }
 
-  // clear the string:
-  readString = ""; // Cleaning User input, ready for new Input
-  stringComplete = false;
 
   //  // Print the hall sensor reading (Every time? NZ)
   //  if ((currentMillis - previousMillis) >= printInterval) { // enough time passed yet?

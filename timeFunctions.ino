@@ -24,23 +24,23 @@ void showTime() { // show current time
 void moveRest () {
   Serial.println("****** IT'S TIME ********");
   REV = map (minAngle, minAngle, maxAngle, 0, PPR); // mapping degree into pulse
-  setpoint = REV;                    //Destination in revolutions - PID will work to achive this value consider as SET value
+  setpoint = REV; //Destination in revolutions - PID will work to achive this value consider as SET value
 }
 
 void moveSec() { // *** NOT READY YET
   Serial.println("****** Second Moving ********");
   destAngle = destAngle+secondAngle;
-  REV = map(destAngle, minAngle, maxAngle, 0, PPR); // mapping degree into pulse
-  setpoint = REV; //Destination in revolutions - PID will work to achive this value consider as SET value
+  REV = map(destAngle, minAngle, maxAngle, 0, PPR); 
+  setpoint = REV; 
 }
 
 void move90fm () {
-  Serial.println("****** IT'S TIME ********");
+  Serial.println("****** IT'S TIME! moving to 90FM ********");
   incrementalToggle = false;  // Disable incremental move
   motorSpeed(150); // Set Speed 
   destAngle = 28; // Destination Angle
-  REV = map (destAngle, minAngle, maxAngle, 0, PPR); // mapping degree into pulse
-  setpoint = REV; //Destination in revolutions - PID will work to achive this value consider as SET value
+  REV = map (destAngle, minAngle, maxAngle, 0, PPR); 
+  setpoint = REV; 
 
   Serial.println("****** time to move by second ********");
   secondSpeed = 95; // Set Speed for incremental
@@ -51,55 +51,55 @@ void move90fm () {
 }
 
 void move100fm () {
-  Serial.println("****** IT'S TIME ********");
-  REV = map (112, minAngle, maxAngle, 0, PPR); // mapping degree into pulse
-  setpoint = REV;                    //Destination in revolutions - PID will work to achive this value consider as SET value
+  Serial.println("****** IT'S TIME! Moving to 100fm********");
+  REV = map (112, minAngle, maxAngle, 0, PPR); 
+  setpoint = REV;                    
 }
 
 void move550am () {
-  Serial.println("****** IT'S TIME ********");
-  REV = map (12, minAngle, maxAngle, 0, PPR); // mapping degree into pulse
-  setpoint = REV;                    //Destination in revolutions - PID will work to achive this value consider as SET value
+  Serial.println("****** IT'S TIME! Moving to 550am ********");
+  REV = map (12, minAngle, maxAngle, 0, PPR); 
+  setpoint = REV;                    
 }
 
 void move600am () {
-  Serial.println("****** IT'S TIME ********");
-  REV = map (32, minAngle, maxAngle, 0, PPR); // mapping degree into pulse
-  setpoint = REV;                    //Destination in revolutions - PID will work to achive this value consider as SET value
+  Serial.println("****** IT'S TIME! moving to 600am ********");
+  REV = map (32, minAngle, maxAngle, 0, PPR); 
+  setpoint = REV;                    
 }
 
 
 void move700am () {
-  Serial.println("****** IT'S TIME ********");
-  REV = map (58, minAngle, maxAngle, 0, PPR); // mapping degree into pulse
-  setpoint = REV;                    //Destination in revolutions - PID will work to achive this value consider as SET value
+  Serial.println("****** IT'S TIME! moving to 700am ********");
+  REV = map (58, minAngle, maxAngle, 0, PPR); 
+  setpoint = REV;                    
 }
 
 void move800am () {
-  Serial.println("****** IT'S TIME ********");
-  REV = map (77, minAngle, maxAngle, 0, PPR); // mapping degree into pulse
-  setpoint = REV;                    //Destination in revolutions - PID will work to achive this value consider as SET value
+  Serial.println("****** IT'S TIME! moving to 800am ********");
+  REV = map (77, minAngle, maxAngle, 0, PPR); 
+  setpoint = REV;                    
 }
 
 
 void move900am () {
-  Serial.println("****** IT'S TIME ********");
-  REV = map (92, minAngle, maxAngle, 0, PPR); // mapping degree into pulse
-  setpoint = REV;                    //Destination in revolutions - PID will work to achive this value consider as SET value
+  Serial.println("****** IT'S TIME! moving to 900am ********");
+  REV = map (92, minAngle, maxAngle, 0, PPR); 
+  setpoint = REV;                    
 }
 
 
 void move1000am () {
-  Serial.println("****** IT'S TIME ********");
-  REV = map (105, minAngle, maxAngle, 0, PPR); // mapping degree into pulse
-  setpoint = REV;                    //Destination in revolutions - PID will work to achive this value consider as SET value
+  Serial.println("****** IT'S TIME! moving to 1000am ********");
+  REV = map (105, minAngle, maxAngle, 0, PPR); 
+  setpoint = REV;                    
 }
 
 
 void move1100am () {
-  Serial.println("****** IT'S TIME ********");
-  REV = map (116, minAngle, maxAngle, 0, PPR); // mapping degree into pulse
-  setpoint = REV;                    //Destination in revolutions - PID will work to achive this value consider as SET value
+  Serial.println("****** IT'S TIME! moving to 1100am ********");
+  REV = map (116, minAngle, maxAngle, 0, PPR); 
+  setpoint = REV;                    
 }
 
 

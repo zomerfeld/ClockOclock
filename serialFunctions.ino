@@ -17,3 +17,9 @@ void serialEvent() {
     }
   }
 }
+
+void clrSrString() {
+    // clear the string:
+  readString = ""; // Cleaning User input, ready for new Input
+  stringComplete = false;
+}
