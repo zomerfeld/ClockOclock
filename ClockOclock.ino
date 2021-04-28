@@ -300,41 +300,41 @@ void loop() {
     } else if (readString == "reset") {
       Serial.println("Reset - FindingEdges");
       findEdges();
-      readString = ""; // Cleaning User input, ready for new Input
+      clrSrString();
     } else if (readString == "time") {
       showTime();
     } else if (readString == "m90f") {
       Serial.println("moving to 90FM");
       move90fm ();
-      readString = ""; // Cleaning User input, ready for new Input
+      clrSrString();
     } else if (readString == "m100f") {
       Serial.println("moving to 100fm");
       move100fm();
-      readString = ""; // Cleaning User input, ready for new Input
+      clrSrString();
     } else if (readString == "m550a") {
       move550am ();
-      readString = ""; // Cleaning User input, ready for new Input
+      clrSrString();
     } else if (readString == "m600a") {
       move600am ();
-      readString = ""; // Cleaning User input, ready for new Input
+      clrSrString();
     } else if (readString == "m700a") {
       move700am ();
-      readString = ""; // Cleaning User input, ready for new Input
+      clrSrString();
     } else if (readString == "m800a") {
       move800am ();
-      readString = ""; // Cleaning User input, ready for new Input
+      clrSrString();
     } else if (readString == "m900a") {
       move900am ();
-      readString = ""; // Cleaning User input, ready for new Input
+      clrSrString();
     } else if (readString == "m1000a") {
       move1000am ();
-      readString = ""; // Cleaning User input, ready for new Input
+      clrSrString();
     } else if (readString == "m1100a") {
       move1100am ();
-      readString = ""; // Cleaning User input, ready for new Input
+      clrSrString();
     } else if (readString == "rest") {
       moveRest ();
-      readString = ""; // Cleaning User input, ready for new Input
+      clrSrString();
 
 
     } else {
@@ -383,8 +383,8 @@ void loop() {
   }
 
   // clear the string:
-  readString = ""; // Cleaning User input, ready for new Input
-  stringComplete = false;
+  clrSrString();
+
 
   //  // Print the hall sensor reading (Every time? NZ)
   //  if ((currentMillis - previousMillis) >= printInterval) { // enough time passed yet?
