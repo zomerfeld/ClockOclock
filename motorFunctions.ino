@@ -63,7 +63,7 @@ void findEdges () {
   // this can be triggered manually by putting "reset" into the serial command.
 
   Serial.println("FINDING EDGES");
-  delay(3000);
+  Alarm.delay(3000);
   while ((analogRead(limitSwPin) <= magnetHigh) && (analogRead(limitSwPin) >= magnetLow)) { // numbers might need adjusting based on analog reads of hall sensor
 
     Serial.println("Running");
@@ -86,7 +86,7 @@ void findEdges () {
   Serial.println(encoderValue);
 
   pwmOut(100); // move FWD a bit
-  delay(2000); //
+  Alarm.delay(2000); //
 
   while ((analogRead(limitSwPin) <= magnetHigh) && (analogRead(limitSwPin) >= magnetLow)) { // move only when not on limits. Does this even work??? NZ
     // numbers might need adjusting based on analog reads of hall sensor
@@ -110,7 +110,7 @@ void findEdges () {
   Serial.print("MAX Position: ");
   Serial.println(maxPosition); // DEBUG - Disable eventually
   PPR = maxPosition;
-  delay(3000); // wait 3 seconds
+  Alarm.delay(3000); // wait 3 seconds
   Serial.println("Moving to minAngle deg");
   setpoint = 90; // the angle we want it to go with after finding edges
   return;

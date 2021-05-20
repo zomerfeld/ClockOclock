@@ -1,8 +1,5 @@
 
 // ***** Timer *****
-#include <SimpleTimer.h>
-SimpleTimer timer; // the timer object
-// timer library - https://github.com/zomerfeld/SimpleTimerArduino
 unsigned long previousMillis = 0;        // will store last time LED was updated
 const long printInterval = 3000;           // interval at which to blink (milliseconds)
 
@@ -88,7 +85,7 @@ long newPosition;
 
 // *** ALARM / SECOND VARIABLES ***
 
-AlarmId moveSecAl;
+AlarmId id;
 bool incrementalToggle = false;
 
 int secondSpeed = 95; //the speed to move when moving once per second
@@ -115,18 +112,11 @@ void setup() {
   setSyncInterval(8000);         // set the number of seconds between re-sync
   readString.reserve(200);   // reserve 200 bytes for the readString
 
-
-  // *** Setting Timers ***
-  //  timer.setInterval(4999, showTime); // This will display the time every 5 seconds on serial. Disable if needed.
-  //  timer.setInterval(1000, minuteMove); // This will move the motor every minute. Not needed currently
-  //  timer.setInterval(5000, fiveSecMove); //moves the motor every 5 second forward. Should not be enabled by default
-
   // *** Set time on RTC ***
   // following line sets the RTC to the date & time this sketch was compiled
   //   rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
   // This line sets the RTC with an explicit date & time,
   // rtc.adjust(DateTime(2017, 6, 2, 15, 29, 0));
-
 
   // ***** PIN SETUP *****
   pinMode(enablePin, OUTPUT);
@@ -175,7 +165,8 @@ void setup() {
 
 
   // ***** Test Alarms *****
-  Alarm.alarmRepeat(15, 52, 0, move90fm);
+  Alarm.alarmRepeat(23,17,0, move90fm);
+  Alarm.alarmRepeat(23,18,0, move100fm); 
   Alarm.timerRepeat(5, showTime); // show time every 5 seconds
 
   //  moveSecAl = Alarm.timerRepeat(6, moveSec); // move every 6 seconds -- disabled currently
@@ -210,14 +201,13 @@ void setup() {
 void loop() {
   // ***** UPDATE TIME *****
   unsigned long currentMillis = millis(); // all time elements are data type unsigned long
-  //  timer.run(); //timers - if you're using them enable that. I'm currently using Alarms, not timers.
   Alarm.delay(1); // Add second to the alarm
 
-  if (incrementalToggle == false) { // decide if to move incrementally (every second) or not
-    Alarm.disable(moveSecAl);
-  } else {
-    Alarm.enable(moveSecAl);
-  }
+//  if (incrementalToggle == false) { // decide if to move incrementally (every second) or not
+//    Alarm.disable(moveSecAl);
+//  } else {
+//    Alarm.enable(moveSecAl);
+//  }
 
 
   // ***** READ ENCODER *****
@@ -287,16 +277,19 @@ void loop() {
       Serial.println("moving back a bit");
       reverse();
       analogWrite(motorSpeedPin, 150);
-      delay(250);
+      Alarm.delay(250);
       setpoint = encoderValue;
       stopMotor();
+      Serial.println("stopped manual move");
+
     } else if (readString == "f") {
       Serial.println("moving fwd a bit");
       forward();
       analogWrite(motorSpeedPin, 150);
-      delay(250);
+      Alarm.delay(250);
       setpoint = encoderValue;
       stopMotor();
+      Serial.println("stopped manual move");
     } else if (readString == "reset") {
       Serial.println("Reset - FindingEdges");
       findEdges();
