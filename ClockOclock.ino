@@ -1,7 +1,7 @@
 
 // ***** Timer *****
 unsigned long previousMillis = 0;        // will store last time LED was updated
-const long printInterval = 3000;           // interval at which to blink (milliseconds)
+const long printInterval = 5000;           // interval at which to print (milliseconds)
 
 
 // ***** PID *****
@@ -165,25 +165,26 @@ void setup() {
 
 
   // ***** Test Alarms *****
-  Alarm.alarmRepeat(23,17,0, move90fm);
-  Alarm.alarmRepeat(23,18,0, move100fm); 
-  Alarm.timerRepeat(5, showTime); // show time every 5 seconds
+  //  Alarm.alarmRepeat(23,17,0, move90fm);
+  //  Alarm.alarmRepeat(23,18,0, move100fm);
+  //  Alarm.timerRepeat(5, showTime); // show time every 5 seconds
 
   //  moveSecAl = Alarm.timerRepeat(6, moveSec); // move every 6 seconds -- disabled currently
 
-  // ********** Do things on times **********
-  //  Alarm.alarmRepeat(20, 59, 57, move90fm);
-  //  Alarm.alarmRepeat(22, 0, 0, move100fm);
-  //  Alarm.alarmRepeat(23, 0, 0, moveRest);
+  // ****** FM ALARMS ******
+  Alarm.alarmRepeat(17, 51, 00, move90fm) ;//should be (20, 59, 58, move90fm);
+  Alarm.alarmRepeat(17, 51, 10, move100fm); //should be (22, 00, 01, move100fm)
+  Alarm.alarmRepeat(17, 51, 20, moveRest);  //should be (23, 00, 00, moveRest)
   //
-  //  Alarm.alarmRepeat(5, 49, 57, move550am);
-  //  Alarm.alarmRepeat(6, 0, 0, move600am);
-  //  Alarm.alarmRepeat(7, 0, 0, move700am);
-  //  Alarm.alarmRepeat(8, 0, 0, move800am);
-  //  Alarm.alarmRepeat(9, 0, 0, move900am);
-  //  Alarm.alarmRepeat(10, 0, 0, move1000am);
-  //  Alarm.alarmRepeat(11, 0, 0, move1100am);
-  //  Alarm.alarmRepeat(12, 0, 0, moveRest);
+  // ****** AM ALARMS ******
+  Alarm.alarmRepeat(17, 51, 30, move550am); // Should Be Alarm.alarmRepeat(5, 49, 58, move550am);
+  Alarm.alarmRepeat(17, 51, 40, move600am); // Should Be Alarm.alarmRepeat(6, 0, 0, move600am);
+  Alarm.alarmRepeat(17, 51, 50, move700am); // Should Be Alarm.alarmRepeat(7, 0, 0, move700am);
+  Alarm.alarmRepeat(17, 52, 0, move800am);  // Should Be Alarm.alarmRepeat(8, 0, 0, move800am);
+  Alarm.alarmRepeat(17, 52, 10, move900am);// Should Be Alarm.alarmRepeat(9, 0, 0, move900am);
+  Alarm.alarmRepeat(17, 52, 20, move1000am); // Should Be Alarm.alarmRepeat(10, 0, 0, move1000am);
+  Alarm.alarmRepeat(17, 52, 30, move1100am); // Should Be Alarm.alarmRepeat(11, 0, 0, move1100am);
+  Alarm.alarmRepeat(17, 52, 40, moveRest); // Should Be Alarm.alarmRepeat(12, 0, 0, moveRest);
 
   // NOT READY THERE MIGHT BE A MAX NUMBER OF ALARMS AND I HAVE TO FIGURE THAT OUT AND RELEASE SOME
 
@@ -201,13 +202,19 @@ void setup() {
 void loop() {
   // ***** UPDATE TIME *****
   unsigned long currentMillis = millis(); // all time elements are data type unsigned long
-  Alarm.delay(1); // Add second to the alarm
+  Alarm.delay(0); // Needed to make the time library work.
 
-//  if (incrementalToggle == false) { // decide if to move incrementally (every second) or not
-//    Alarm.disable(moveSecAl);
-//  } else {
-//    Alarm.enable(moveSecAl);
-//  }
+  // *** Print Time ***
+  if ((currentMillis - previousMillis) >= printInterval) { // enough time passed yet?
+    previousMillis = currentMillis;
+    showTime();
+  }
+
+  //  if (incrementalToggle == false) { // decide if to move incrementally (every second) or not
+  //    Alarm.disable(moveSecAl);
+  //  } else {
+  //    Alarm.enable(moveSecAl);
+  //  }
 
 
   // ***** READ ENCODER *****
@@ -385,6 +392,8 @@ void loop() {
   //    Serial.print("LIMIT - HALL SENSOR READING: ");
   //    Serial.println(analogRead(limitSwPin));
   //  }
+
+
 } //  *** end of loop ***
 
 

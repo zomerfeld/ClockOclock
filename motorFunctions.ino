@@ -45,7 +45,7 @@ void checkMax() { //stops the motor if it's trying to go over the max position
     Serial.println("Reached Max");
     stopMotor();
     motionDone = 1;
-    setpoint = 90;
+    setpoint = 0;
 
   }
 }
@@ -68,6 +68,7 @@ void findEdges () {
 
     Serial.println("Running");
     pwmOut(-150);
+    Alarm.delay(0);
     Serial.print("Sensor: ");
     Serial.println(analogRead(limitSwPin));
     newPosition = encoderValue;
@@ -90,8 +91,8 @@ void findEdges () {
 
   while ((analogRead(limitSwPin) <= magnetHigh) && (analogRead(limitSwPin) >= magnetLow)) { // move only when not on limits. Does this even work??? NZ
     // numbers might need adjusting based on analog reads of hall sensor
-
     pwmOut(150); // move FWD
+    Alarm.delay(0);
     Serial.println("FINDING MAX POINT"); // DEBUG - Disable eventually
     newPosition = encoderValue;
     if (newPosition != oldPosition) {
@@ -112,7 +113,8 @@ void findEdges () {
   PPR = maxPosition;
   Alarm.delay(3000); // wait 3 seconds
   Serial.println("Moving to minAngle deg");
-  setpoint = 90; // the angle we want it to go with after finding edges
+  REV = map (10, minAngle, maxAngle, 0, PPR); // replace first number with destination you want to go after mapping.
+  setpoint = REV; //Destination in revolutions - PID will work to achive this value consider as SET value  Serial.println("Moved to Min");
   return;
 
 }
