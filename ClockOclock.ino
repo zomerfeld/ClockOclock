@@ -12,6 +12,9 @@ const long printInterval = 5000;           // interval at which to print (millis
 #include <TimeAlarms.h>
 #include <DS1307RTC.h>  // a basic DS1307 library that returns time as a time_t
 
+// make this edit to TimeAlarms.h
+// #define dtNBR_ALARMS 24  // max is 255
+
 
 // RTC Wiring: 5V to 5V, GND to GND, SCL to A5 (on Uno, changes by controller), SDA to A4 (on Uno)
 // TC Wiring: https://screencast.com/t/50Cv0fAUM7w5
@@ -118,6 +121,7 @@ void setup() {
   // This line sets the RTC with an explicit date & time,
   // rtc.adjust(DateTime(2017, 6, 2, 15, 29, 0));
 
+  
   // ***** PIN SETUP *****
   pinMode(enablePin, OUTPUT);
   pinMode(motorSpeedPin, OUTPUT);
@@ -172,19 +176,19 @@ void setup() {
   //  moveSecAl = Alarm.timerRepeat(6, moveSec); // move every 6 seconds -- disabled currently
 
   // ****** FM ALARMS ******
-  Alarm.alarmRepeat(17, 51, 00, move90fm) ;//should be (20, 59, 58, move90fm);
-  Alarm.alarmRepeat(17, 51, 10, move100fm); //should be (22, 00, 01, move100fm)
-  Alarm.alarmRepeat(17, 51, 20, moveRest);  //should be (23, 00, 00, moveRest)
+  Alarm.alarmRepeat(20, 59, 58, move90fm) ;//should be (20, 59, 58, move90fm);
+  Alarm.alarmRepeat(22, 00, 01, move100fm); //should be (22, 00, 01, move100fm)
+  Alarm.alarmRepeat(23, 00, 00, moveRest);  //should be (23, 00, 00, moveRest)
   //
   // ****** AM ALARMS ******
-  Alarm.alarmRepeat(17, 51, 30, move550am); // Should Be Alarm.alarmRepeat(5, 49, 58, move550am);
-  Alarm.alarmRepeat(17, 51, 40, move600am); // Should Be Alarm.alarmRepeat(6, 0, 0, move600am);
-  Alarm.alarmRepeat(17, 51, 50, move700am); // Should Be Alarm.alarmRepeat(7, 0, 0, move700am);
-  Alarm.alarmRepeat(17, 52, 0, move800am);  // Should Be Alarm.alarmRepeat(8, 0, 0, move800am);
-  Alarm.alarmRepeat(17, 52, 10, move900am);// Should Be Alarm.alarmRepeat(9, 0, 0, move900am);
-  Alarm.alarmRepeat(17, 52, 20, move1000am); // Should Be Alarm.alarmRepeat(10, 0, 0, move1000am);
-  Alarm.alarmRepeat(17, 52, 30, move1100am); // Should Be Alarm.alarmRepeat(11, 0, 0, move1100am);
-  Alarm.alarmRepeat(17, 52, 40, moveRest); // Should Be Alarm.alarmRepeat(12, 0, 0, moveRest);
+  Alarm.alarmRepeat(5, 49, 58, move550am); // Should Be Alarm.alarmRepeat(5, 49, 58, move550am);
+  Alarm.alarmRepeat(6, 0 ,0, move600am); // Should Be Alarm.alarmRepeat(6, 0, 0, move600am);
+  Alarm.alarmRepeat(7, 0, 0, move700am); // Should Be Alarm.alarmRepeat(7, 0, 0, move700am);
+  Alarm.alarmRepeat(8, 0, 0, move800am);  // Should Be Alarm.alarmRepeat(8, 0, 0, move800am);
+  Alarm.alarmRepeat(9, 0, 0, move900am);// Should Be Alarm.alarmRepeat(9, 0, 0, move900am);
+  Alarm.alarmRepeat(10, 0, 0, move1000am); // Should Be Alarm.alarmRepeat(10, 0, 0, move1000am);
+  Alarm.alarmRepeat(11, 0, 0, move1100am); // Should Be Alarm.alarmRepeat(11, 0, 0, move1100am);
+  Alarm.alarmRepeat(12, 0, 0, moveRest); // Should Be Alarm.alarmRepeat(12, 0, 0, moveRest);
 
   // NOT READY THERE MIGHT BE A MAX NUMBER OF ALARMS AND I HAVE TO FIGURE THAT OUT AND RELEASE SOME
 
