@@ -116,11 +116,9 @@ void setup() {
   readString.reserve(200);   // reserve 200 bytes for the readString
 
   // *** Set time on RTC ***
-  // following line sets the RTC to the date & time this sketch was compiled
-  //   rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-  // This line sets the RTC with an explicit date & time,
-//   rtc.adjust(DateTime(2022, 1, 21, 10, 59, 45));
-
+  // These lines sets the RTC with an explicit date & time,
+//  setTime(17,58,20,12,2,2022); //setTime(hr,min,sec,day,month,yr);
+//  RTC.set(now());
 
   // ***** PIN SETUP *****
   pinMode(enablePin, OUTPUT);
