@@ -11,9 +11,8 @@ const long printInterval = 5000;           // interval at which to print (millis
 #include <TimeLib.h>
 #include <TimeAlarms.h>
 #include <DS1307RTC.h>  // a basic DS1307 library that returns time as a time_t
-
-// make this edit to TimeAlarms.h
-// #define dtNBR_ALARMS 24  // max is 255
+//#include "RTClib.h"
+//RTC_DS1307 rtc;
 
 
 // RTC Wiring: 5V to 5V, GND to GND, SCL to A5 (on Uno, changes by controller), SDA to A4 (on Uno)
@@ -87,7 +86,8 @@ long newPosition;
 
 
 // *** ALARM / SECOND VARIABLES ***
-
+// make this edit to TimeAlarms.h
+// #define dtNBR_ALARMS 24  // max is 255
 AlarmId id;
 bool incrementalToggle = false;
 
@@ -119,9 +119,9 @@ void setup() {
   // following line sets the RTC to the date & time this sketch was compiled
   //   rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
   // This line sets the RTC with an explicit date & time,
-  // rtc.adjust(DateTime(2017, 6, 2, 15, 29, 0));
+//   rtc.adjust(DateTime(2022, 1, 21, 10, 59, 45));
 
-  
+
   // ***** PIN SETUP *****
   pinMode(enablePin, OUTPUT);
   pinMode(motorSpeedPin, OUTPUT);
@@ -182,7 +182,7 @@ void setup() {
   //
   // ****** AM ALARMS ******
   Alarm.alarmRepeat(5, 49, 58, move550am); // Should Be Alarm.alarmRepeat(5, 49, 58, move550am);
-  Alarm.alarmRepeat(6, 0 ,0, move600am); // Should Be Alarm.alarmRepeat(6, 0, 0, move600am);
+  Alarm.alarmRepeat(6, 0 , 0, move600am); // Should Be Alarm.alarmRepeat(6, 0, 0, move600am);
   Alarm.alarmRepeat(7, 0, 0, move700am); // Should Be Alarm.alarmRepeat(7, 0, 0, move700am);
   Alarm.alarmRepeat(8, 0, 0, move800am);  // Should Be Alarm.alarmRepeat(8, 0, 0, move800am);
   Alarm.alarmRepeat(9, 0, 0, move900am);// Should Be Alarm.alarmRepeat(9, 0, 0, move900am);
