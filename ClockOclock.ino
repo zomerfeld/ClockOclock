@@ -13,6 +13,12 @@ const long printInterval = 5000;           // interval at which to print (millis
 #include <DS1307RTC.h>  // a basic DS1307 library that returns time as a time_t
 //#include "RTClib.h"
 //RTC_DS1307 rtc;
+const char *monthName[12] = {
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+};
+
+tmElements_t tm;
 
 
 // RTC Wiring: 5V to 5V, GND to GND, SCL to A5 (on Uno, changes by controller), SDA to A4 (on Uno)
@@ -56,6 +62,9 @@ boolean stringComplete = false;  // whether the string is complete
 // *** CLOCK VARIABLES ***
 bool motorDisabled = 0; //To disable the motor passed limits
 long maxPosition = 25L * 40000L;
+long minPosition = 25L * 40000L;
+
+
 //long cmdPosition = 200; // Where we're aiming the motor to go
 bool motionDone = 1; // If the clock's in motion or not
 long distanceMinute = 18; // CHANGE - How much we need to move for one minute passing - in angles
@@ -71,8 +80,8 @@ int encoderPin2 = 2; //Encoder Otput 'B' must connected with intreput pin of ard
 volatile int lastEncoded = 0; // Here updated value of encoder store.
 volatile long encoderValue = 0; // Raw encoder value
 int PPR = 7124;  // Encoder Pulse per revolution.
-int minAngle = 10; // Maximum degree of motion.
-int maxAngle = 170; // Maximum degree of motion.
+int minAngle = 12; // degrees to map with magents
+int maxAngle = 170; // degrees to map with magnets
 int destAngle = 0;
 int REV = 0;          // Set point REQUIRED ENCODER VALUE
 int lastMSB = 0;
@@ -117,8 +126,20 @@ void setup() {
 
   // *** Set time on RTC ***
   // These lines sets the RTC with an explicit date & time,
-//  setTime(17,58,20,12,2,2022); //setTime(hr,min,sec,day,month,yr);
+//  setTime(23,58,20,9,25,2023); //setTime(hr,min,sec,day,month,yr);
 //  RTC.set(now());
+  bool parse=false;
+  bool config=false;
+//
+//  // get the date and time the compiler was run
+//  if (getDate(__DATE__) && getTime(__TIME__)) {
+//    parse = true;
+//    // and configure the RTC with this info
+//    if (RTC.write(tm)) {
+//      config = true;
+//    }
+//  }
+
 
   // ***** PIN SETUP *****
   pinMode(enablePin, OUTPUT);
@@ -140,8 +161,8 @@ void setup() {
   //     on interrupt 0 (pin 2), or interrupt 1 (pin 3)
   attachInterrupt(0, updateEncoder, CHANGE);
   attachInterrupt(1, updateEncoder, CHANGE);
-  REV = map (90, minAngle, maxAngle, 0, PPR); // mapping degree into pulse
-  setpoint = REV;                    //Destination in revolutions - PID will work to achive this value consider as SET value      REV = map (User_Input, 10, angle, 0, PPR); // mapping degree into pulse
+  REV = map (90, minAngle, maxAngle, minPosition, PPR); // mapping degree into pulse
+  setpoint = REV;                    //Destination in revolutions - PID will work to achive this value consider as SET value      REV = map (User_Input, 10, angle, minPosition, PPR); // mapping degree into pulse
 
   TCCR1B = TCCR1B & 0b11111000 | 1;  // set 31KHz PWM to prevent motor noise
 
@@ -193,7 +214,7 @@ void setup() {
 }
 
 
-// *************************************************************************************************************************************************************************************
+// **********************************************************
 
 
 
@@ -345,7 +366,7 @@ void loop() {
       if (User_Input < 5) {
         User_Input = 5;
       }
-      REV = map (User_Input, minAngle, maxAngle, 0, PPR); // mapping degree into pulse
+      REV = map (User_Input, minAngle, maxAngle, minPosition, PPR); // mapping degree into pulse
       setpoint = REV;                    //Destination in revolutions - PID will work to achive this value consider as SET value
 
     }

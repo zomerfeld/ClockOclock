@@ -74,14 +74,15 @@ void findEdges () {
     newPosition = encoderValue;
     if (newPosition != oldPosition) {
       oldPosition = newPosition;
-      //      Serial.print ("encoder position: "); // DEBUG - Disable eventually
-      //      Serial.println(newPosition); // DEBUG - Disable eventually
+//            Serial.print ("encoder position: "); // DEBUG - Disable eventually
+//            Serial.println(newPosition); // DEBUG - Disable eventually
     }
   }
 
-  Serial.println("*** FOUND MIN EDGE ***"); // DEBUG - Disable eventually
+  //Serial.println("*** FOUND MIN EDGE ***"); // DEBUG - Disable eventually
   stopMotor();
-  encoderValue = 250; // writes 0 to the encoder location
+//  encoderValue = 500; // writes 500 to the encoder location because the limit switch is installed  a bit too close / early, you can adjust this if zero is not zero degrees on the radio. 
+  minPosition = encoderValue;
   Serial.println("Limit Switch Activated - MIN"); // DEBUG
   Serial.print("New Limit: "); // DEBUG
   Serial.println(encoderValue);
@@ -94,7 +95,7 @@ void findEdges () {
     pwmOut(150); // move FWD
     Alarm.delay(0);
     Serial.println("FINDING MAX POINT"); // DEBUG - Disable eventually
-    newPosition = encoderValue;
+    newPosition = encoderValue-410;
     if (newPosition != oldPosition) {
       oldPosition = newPosition;
       Serial.print ("encoder position: "); // DEBUG - Disable eventually
@@ -105,7 +106,7 @@ void findEdges () {
     }
   }
 
-  maxPosition = newPosition + 50;
+  maxPosition = newPosition + 200; /// writes max position to be current location plus 200 because the limit switch is a bit too close. Change numbers if it's not 180 degress on the clock 
   Serial.println("*** FOUND MAX EDGE ***"); // DEBUG - Disable eventually
   stopMotor();
   Serial.print("MAX Position: ");
@@ -113,8 +114,8 @@ void findEdges () {
   PPR = maxPosition;
   Alarm.delay(3000); // wait 3 seconds
   Serial.println("Moving to minAngle deg");
-  REV = map (10, minAngle, maxAngle, 0, PPR); // replace first number with destination you want to go after mapping.
-  setpoint = REV; //Destination in revolutions - PID will work to achive this value consider as SET value  Serial.println("Moved to Min");
+  REV = map (10, minAngle, maxAngle, minPosition, PPR); // replace first number with destination you want to go after mapping.
+  setpoint = REV; //Destination in revolutions - PID will work to achive this value consider as SET value 
   return;
 
 }
